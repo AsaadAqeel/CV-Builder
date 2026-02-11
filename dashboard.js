@@ -164,7 +164,11 @@ function setupDesign() {
             option.classList.add('active');
 
             // Update Data
+            if (!cvData.design) cvData.design = {};
             cvData.design.theme = option.getAttribute('data-theme');
+
+            // Auto-save and update preview
+            saveAllData(true);
         });
     });
 
@@ -172,7 +176,11 @@ function setupDesign() {
     const fontSelect = document.getElementById('fontSelect');
     if (fontSelect) {
         fontSelect.addEventListener('change', (e) => {
+            if (!cvData.design) cvData.design = {};
             cvData.design.font = e.target.value;
+
+            // Auto-save and update preview
+            saveAllData(true);
         });
     }
 }
@@ -237,12 +245,14 @@ function loadData() {
 }
 
 // Save data to localStorage
-function saveAllData() {
+function saveAllData(silent = false) {
     collectFormData();
     localStorage.setItem('cvData', JSON.stringify(cvData));
     calculateStrength();
     updatePreview();
-    showSuccessMessage();
+    if (!silent) {
+        showSuccessMessage();
+    }
 }
 
 // Show success message
