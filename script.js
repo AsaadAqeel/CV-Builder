@@ -410,7 +410,7 @@ window.addEventListener('scroll', () => {
 
 // ===== SMOOTH SCROLL TO TOP =====
 // Add this button to your HTML if you want a scroll-to-top feature
-/*
+// ===== SMOOTH SCROLL TO TOP =====
 const scrollTopBtn = document.createElement('button');
 scrollTopBtn.innerHTML = '↑';
 scrollTopBtn.className = 'scroll-top-btn';
@@ -450,7 +450,6 @@ scrollTopBtn.addEventListener('click', () => {
         behavior: 'smooth'
     });
 });
-*/
 
 // ===== MOUSE MOVEMENT EFFECT (subtle parallax) =====
 document.addEventListener('mousemove', (e) => {
