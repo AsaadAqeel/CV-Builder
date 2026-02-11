@@ -1,0 +1,31 @@
+# Ignore operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Ignore editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Ignore temporary files
+*.tmp
+*.temp
+.cache/
+
+# Ignore node_modules (if you add any JavaScript packages later)
+node_modules/
+
+# Ignore logs
+*.log
+npm-debug.log*
+
+# Ignore environment files (for security)
+.env
+.env.local
+
+# Ignore build files (if any)
+dist/
+build/

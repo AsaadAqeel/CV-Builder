@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional CV</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="logo">CV</span>
+        </div>
+        <div class="nav-links">
+            <a href="#about">About</a>
+            <a href="#experience">Experience</a>
+            <a href="#skills">Skills</a>
+            <a href="#projects">Projects</a>
+            <a href="#contact">Contact</a>
+        </div>
+        <div class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1>John Doe</h1>
+                <p class="tagline">Senior Software Engineer</p>
+                <p class="location"><i class="fas fa-map-marker-alt"></i> San Francisco, CA</p>
+                <div class="hero-buttons">
+                    <a href="#contact" class="btn btn-primary">Get In Touch</a>
+                    <a href="#" class="btn btn-secondary" onclick="window.print()">Download CV</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="profile-image">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop" alt="Profile">
+                </div>
+            </div>
+        </div>
+        <div class="hero-bg-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+        </div>
+    </header>
+
+    <!-- Contact Info Section -->
+    <section id="contact" class="contact-info">
+        <div class="container">
+            <div class="contact-grid">
+                <a href="tel:+1234567890" class="contact-item">
+                    <i class="fas fa-phone"></i>
+                    <span>+1 (234) 567-890</span>
+                </a>
+                <a href="mailto:john.doe@email.com" class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>john.doe@email.com</span>
+                </a>
+                <a href="https://linkedin.com/in/johndoe" target="_blank" class="contact-item">
+                    <i class="fab fa-linkedin"></i>
+                    <span>linkedin.com/in/johndoe</span>
+                </a>
+                <a href="https://github.com/johndoe" target="_blank" class="contact-item">
+                    <i class="fab fa-github"></i>
+                    <span>github.com/johndoe</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Professional Summary -->
+    <section id="about" class="summary">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-number">01</span>
+                <h2>Professional Summary</h2>
+            </div>
+            <p class="summary-text">
+                Experienced Software Engineer with 8+ years of expertise in full-stack development, specializing in building scalable web applications and microservices. Proven track record of leading cross-functional teams and delivering high-impact solutions that increased revenue by 40%. Passionate about clean code, modern architectures, and mentoring junior developers to achieve technical excellence.
+            </p>
+        </div>
+    </section>
+
+    <!-- Work Experience -->
+    <section id="experience" class="experience">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-number">02</span>
+                <h2>Work Experience</h2>
+            </div>
+            
+            <div class="timeline">
+                <div class="experience-card">
+                    <div class="experience-header">
+                        <div class="company-info">
+                            <h3>TechCorp Solutions</h3>
+                            <span class="role">Senior Software Engineer</span>
+                        </div>
+                        <span class="date">2021 - Present</span>
+                    </div>
+                    <ul class="achievements">
+                        <li>Led a team of 5 engineers to rebuild the core platform using React and Node.js, resulting in 60% faster load times</li>
+                        <li>Architected and deployed microservices infrastructure handling 1M+ daily requests with 99.9% uptime</li>
+                        <li>Implemented CI/CD pipelines that reduced deployment time by 70% and eliminated production errors</li>
+                        <li>Mentored 3 junior developers who were promoted to mid-level within 12 months</li>
+                    </ul>
+                </div>
+
+                <div class="experience-card">
+                    <div class="experience-header">
+                        <div class="company-info">
+                            <h3>InnovateSoft Inc</h3>
+                            <span class="role">Full Stack Developer</span>
+                        </div>
+                        <span class="date">2018 - 2021</span>
+                    </div>
+                    <ul class="achievements">
+                        <li>Developed customer-facing dashboard that increased user engagement by 45% and reduced churn by 25%</li>
+                        <li>Optimized database queries reducing API response time from 3s to 200ms</li>
+                        <li>Built automated testing suite achieving 85% code coverage and reducing bugs by 60%</li>
+                    </ul>
+                </div>
+
+                <div class="experience-card">
+                    <div class="experience-header">
+                        <div class="company-info">
+                            <h3>StartUp Hub</h3>
+                            <span class="role">Junior Web Developer</span>
+                        </div>
+                        <span class="date">2016 - 2018</span>
+                    </div>
+                    <ul class="achievements">
+                        <li>Collaborated with design team to implement responsive UI components using HTML5, CSS3, and JavaScript</li>
+                        <li>Assisted in migrating legacy PHP application to modern React framework</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="skills">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-number">03</span>
+                <h2>Skills</h2>
+            </div>
+            
+            <div class="skills-grid">
+                <div class="skill-category">
+                    <h3>Technical Skills</h3>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span>JavaScript / TypeScript</span>
+                            <span>95%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" data-progress="95"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span>React / Next.js</span>
+                            <span>90%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" data-progress="90"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span>Node.js / Express</span>
+                            <span>88%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" data-progress="88"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span>Python / Django</span>
+                            <span>82%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" data-progress="82"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span>AWS / Cloud Services</span>
+                            <span>78%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" data-progress="78"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span>Database (SQL/NoSQL)</span>
+                            <span>85%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" data-progress="85"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="skill-category">
+                    <h3>Soft Skills</h3>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span>Leadership</span>
+                            <span>92%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" data-progress="92"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span>Communication</span>
+                            <span>88%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" data-progress="88"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span>Problem Solving</span>
+                            <span>95%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" data-progress="95"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span>Team Collaboration</span>
+                            <span>90%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" data-progress="90"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span>Project Management</span>
+                            <span>85%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" data-progress="85"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Education Section -->
+    <section id="education" class="education">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-number">04</span>
+                <h2>Education</h2>
+            </div>
+            
+            <div class="education-cards">
+                <div class="education-card">
+                    <div class="edu-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="edu-content">
+                        <h3>Master of Science in Computer Science</h3>
+                        <p class="institution">Stanford University</p>
+                        <p class="grad-date">Graduated: 2016</p>
+                        <p class="gpa">GPA: 3.9/4.0</p>
+                    </div>
+                </div>
+
+                <div class="education-card">
+                    <div class="edu-icon">
+                        <i class="fas fa-university"></i>
+                    </div>
+                    <div class="edu-content">
+                        <h3>Bachelor of Science in Software Engineering</h3>
+                        <p class="institution">University of California, Berkeley</p>
+                        <p class="grad-date">Graduated: 2014</p>
+                        <p class="gpa">GPA: 3.8/4.0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Certifications -->
+    <section id="certifications" class="certifications">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-number">05</span>
+                <h2>Certifications</h2>
+            </div>
+            
+            <div class="cert-grid">
+                <div class="cert-card">
+                    <i class="fab fa-aws"></i>
+                    <h3>AWS Solutions Architect</h3>
+                    <p>Amazon Web Services</p>
+                    <span class="cert-date">2023</span>
+                </div>
+                <div class="cert-card">
+                    <i class="fab fa-google"></i>
+                    <h3>Google Cloud Professional</h3>
+                    <p>Google Cloud Platform</p>
+                    <span class="cert-date">2022</span>
+                </div>
+                <div class="cert-card">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Certified Scrum Master</h3>
+                    <p>Scrum Alliance</p>
+                    <span class="cert-date">2021</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="projects">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-number">06</span>
+                <h2>Featured Projects</h2>
+            </div>
+            
+            <div class="projects-grid">
+                <div class="project-card">
+                    <div class="project-image">
+                        <div class="project-placeholder">E-Commerce Platform</div>
+                    </div>
+                    <div class="project-content">
+                        <h3>E-Commerce Platform</h3>
+                        <p>Built a full-stack e-commerce solution handling 10K+ daily transactions with real-time inventory management.</p>
+                        <div class="project-tech">
+                            <span>React</span>
+                            <span>Node.js</span>
+                            <span>MongoDB</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" class="btn-small">View Demo</a>
+                            <a href="#" class="btn-small btn-outline">Source Code</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-image">
+                        <div class="project-placeholder">AI Dashboard</div>
+                    </div>
+                    <div class="project-content">
+                        <h3>AI Analytics Dashboard</h3>
+                        <p>Developed a real-time analytics dashboard with ML predictions for business intelligence.</p>
+                        <div class="project-tech">
+                            <span>Python</span>
+                            <span>TensorFlow</span>
+                            <span>D3.js</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" class="btn-small">View Demo</a>
+                            <a href="#" class="btn-small btn-outline">Source Code</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-image">
+                        <div class="project-placeholder">Mobile Banking App</div>
+                    </div>
+                    <div class="project-content">
+                        <h3>Mobile Banking App</h3>
+                        <p>Secure mobile banking application with biometric authentication and real-time transactions.</p>
+                        <div class="project-tech">
+                            <span>React Native</span>
+                            <span>Firebase</span>
+                            <span>Node.js</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" class="btn-small">View Demo</a>
+                            <a href="#" class="btn-small btn-outline">Source Code</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Awards Section -->
+    <section id="awards" class="awards">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-number">07</span>
+                <h2>Awards & Achievements</h2>
+            </div>
+            
+            <div class="awards-grid">
+                <div class="award-card">
+                    <div class="award-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="award-content">
+                        <h3>Employee of the Year</h3>
+                        <p>TechCorp Solutions</p>
+                        <span class="award-year">2023</span>
+                    </div>
+                </div>
+                <div class="award-card">
+                    <div class="award-icon">
+                        <i class="fas fa-medal"></i>
+                    </div>
+                    <div class="award-content">
+                        <h3>Hackathon Winner</h3>
+                        <p>TechCrunch Disrupt</p>
+                        <span class="award-year">2022</span>
+                    </div>
+                </div>
+                <div class="award-card">
+                    <div class="award-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="award-content">
+                        <h3>Outstanding Contributor</h3>
+                        <p>Open Source Community</p>
+                        <span class="award-year">2021</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2024 John Doe. All rights reserved.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                    <a href="#"><i class="fab fa-github"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
