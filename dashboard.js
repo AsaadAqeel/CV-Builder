@@ -534,6 +534,25 @@ function renderEducationList() {
     });
 }
 
+function handleEduFileUpload(input) {
+    const file = input.files[0];
+    if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+            alert('File size too large. Max 5MB.');
+            input.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            input.setAttribute('data-file', e.target.result);
+            const statusSpan = input.nextElementSibling;
+            if (statusSpan) statusSpan.textContent = 'File selected: ' + file.name;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
 function createEducationItem(edu = {}, index) {
     const div = document.createElement('div');
     div.className = 'dynamic-item';
@@ -561,6 +580,13 @@ function createEducationItem(edu = {}, index) {
                 <label>GPA (Optional)</label>
                 <input type="text" class="edu-gpa" value="${edu.gpa || ''}" placeholder="3.9">
             </div>
+            <div class="form-group full-width">
+                <label>Degree File (Image/PDF)</label>
+                <input type="file" accept="image/*,.pdf" onchange="handleEduFileUpload(this)" ${edu.file ? 'data-file="' + edu.file + '"' : ''}>
+                <span class="file-status" style="font-size: 0.85rem; color: #9ca3af; display: block; margin-top: 5px;">
+                    ${edu.file ? 'File currently uploaded' : 'No file selected'}
+                </span>
+            </div>
         </div>
     `;
     return div;
@@ -571,7 +597,8 @@ function addEducation() {
         degree: '',
         institution: '',
         graduationDate: '',
-        gpa: ''
+        gpa: '',
+        file: null
     });
     renderEducationList();
 }
@@ -587,7 +614,8 @@ function collectEducationData() {
         degree: item.querySelector('.edu-degree').value,
         institution: item.querySelector('.edu-institution').value,
         graduationDate: item.querySelector('.edu-date').value,
-        gpa: item.querySelector('.edu-gpa').value
+        gpa: item.querySelector('.edu-gpa').value,
+        file: item.querySelector('input[type="file"]').getAttribute('data-file') || null
     }));
 }
 
@@ -861,6 +889,25 @@ function renderAwardsList() {
     });
 }
 
+function handleAwardFileUpload(input) {
+    const file = input.files[0];
+    if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+            alert('File size too large. Max 5MB.');
+            input.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            input.setAttribute('data-file', e.target.result);
+            const statusSpan = input.nextElementSibling;
+            if (statusSpan) statusSpan.textContent = 'File selected: ' + file.name;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
 function createAwardItem(award = {}, index) {
     const div = document.createElement('div');
     div.className = 'dynamic-item';
@@ -884,6 +931,13 @@ function createAwardItem(award = {}, index) {
                 <label>Year</label>
                 <input type="text" class="award-year" value="${award.year || ''}" placeholder="2023">
             </div>
+            <div class="form-group full-width">
+                <label>Award File (Image/PDF)</label>
+                <input type="file" accept="image/*,.pdf" onchange="handleAwardFileUpload(this)" ${award.file ? 'data-file="' + award.file + '"' : ''}>
+                <span class="file-status" style="font-size: 0.85rem; color: #9ca3af; display: block; margin-top: 5px;">
+                    ${award.file ? 'File currently uploaded' : 'No file selected'}
+                </span>
+            </div>
         </div>
     `;
     return div;
@@ -893,7 +947,8 @@ function addAward() {
     cvData.awards.push({
         name: '',
         organization: '',
-        year: ''
+        year: '',
+        file: null
     });
     renderAwardsList();
 }
@@ -908,7 +963,8 @@ function collectAwardsData() {
     return Array.from(items).map(item => ({
         name: item.querySelector('.award-name').value,
         organization: item.querySelector('.award-org').value,
-        year: item.querySelector('.award-year').value
+        year: item.querySelector('.award-year').value,
+        file: item.querySelector('input[type="file"]').getAttribute('data-file') || null
     }));
 }
 

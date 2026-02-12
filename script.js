@@ -138,6 +138,10 @@ function renderEducation(education) {
                 <p class="institution">${edu.institution}</p>
                 <p class="grad-date">Graduated: ${edu.graduationDate}</p>
                 ${edu.gpa ? `<p class="gpa">GPA: ${edu.gpa}/4.0</p>` : ''}
+                ${edu.file ? `
+                <a href="${edu.file}" target="_blank" class="view-file-btn">
+                    <i class="fas fa-eye"></i> View Degree
+                </a>` : ''}
             </div>
         </div>
     `).join('');
@@ -239,6 +243,10 @@ function renderAwards(awards) {
                 <h3>${award.name}</h3>
                 <p>${award.organization}</p>
                 <span class="award-year">${award.year}</span>
+                ${award.file ? `
+                <a href="${award.file}" target="_blank" class="view-file-btn">
+                    <i class="fas fa-eye"></i> View Award
+                </a>` : ''}
             </div>
         </div>
     `).join('');

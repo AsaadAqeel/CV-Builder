@@ -1154,7 +1154,8 @@ section {
     }
 }
 
-.view-cert-btn {
+.view-cert-btn,
+.view-file-btn {
     display: inline-block;
     margin-top: 10px;
     padding: 6px 12px;
@@ -1166,7 +1167,8 @@ section {
     transition: all 0.3s ease;
 }
 
-.view-cert-btn:hover {
+.view-cert-btn:hover,
+.view-file-btn:hover {
     background: var(--violet);
     color: white;
 }
