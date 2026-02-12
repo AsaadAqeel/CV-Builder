@@ -491,7 +491,37 @@ document.addEventListener('mousemove', (e) => {
 
 // ===== PDF EXPORT =====
 function downloadPDF() {
-    window.print();
+    const element = document.body;
+    const opt = {
+        margin: [0, 0, 0, 10], // Top, Left, Bottom, Right
+        filename: 'my-resume.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+            scale: 2,
+            useCORS: true,
+            scrollY: 0,
+            logging: false
+        },
+        jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait'
+        },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    // Add class for print styling
+    document.body.classList.add('generating-pdf');
+
+    // Generate PDF
+    html2pdf().set(opt).from(element).save().then(() => {
+        // Remove class
+        document.body.classList.remove('generating-pdf');
+    }).catch(err => {
+        console.error('PDF generation error:', err);
+        document.body.classList.remove('generating-pdf');
+        alert('Error generating PDF. Please try again.');
+    });
 }
 
 

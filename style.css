@@ -1431,3 +1431,23 @@ body[data-theme="orange"],
         line-height: 1.5 !important;
     }
 }
+
+/* ===== HTML2PDF GENERATION STYLES ===== */
+body.generating-pdf .navbar,
+body.generating-pdf .hero-buttons,
+body.generating-pdf .scroll-top-btn,
+body.generating-pdf .hamburger,
+body.generating-pdf .btn-nav,
+body.generating-pdf .view-cert-btn,
+body.generating-pdf .view-file-btn,
+body.generating-pdf .nav-actions,
+body.generating-pdf .btn-remove,
+body.generating-pdf .btn-add,
+body.generating-pdf .footer {
+    display: none !important;
+}
+
+body.generating-pdf {
+    overflow: visible !important;
+    height: auto !important;
+}
