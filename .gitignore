@@ -29,3 +29,6 @@ npm-debug.log*
 # Ignore build files (if any)
 dist/
 build/
+
+# Ignore generated PDF
+CV.pdf
