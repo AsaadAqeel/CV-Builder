@@ -33,12 +33,12 @@ const fs = require('fs');
     await page.pdf({
         path: 'CV.pdf',
         format: 'A4',
-        printBackground: true, // Crucial for gradients/colors
+        printBackground: true,
         margin: {
-            top: '0px',
-            right: '0px',
-            bottom: '0px',
-            left: '0px'
+            top: '10mm',
+            right: '10mm',
+            bottom: '10mm',
+            left: '10mm'
         },
         displayHeaderFooter: false
     });

@@ -2131,3 +2131,165 @@ body.printing .experience-card::before {
 .a4-page .cert-card i {
     display: none !important;
 }
+
+/* =========================================
+   STANDARD PRINT STYLES (For Ctrl+P / Puppeteer)
+   ========================================= */
+@media print {
+    @page {
+        margin: 1cm;
+        size: A4 portrait;
+    }
+
+    body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        padding-top: 0 !important;
+    }
+
+    /* Force all text to black */
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p,
+    span,
+    div,
+    a,
+    li {
+        color: #000000 !important;
+        text-shadow: none !important;
+    }
+
+    /* Exceptions for some gray text if needed, but black is safest for contrast */
+    .tagline,
+    .role,
+    .project-tech,
+    .date,
+    .grad-date {
+        color: #444444 !important;
+    }
+
+    /* Hide Web-only elements */
+    .navbar,
+    .hero-buttons,
+    .scroll-top-btn,
+    .preview-controls,
+    .modal,
+    .hamburger,
+    .footer,
+    .hero-bg-shapes,
+    .project-links,
+    .view-file-btn {
+        display: none !important;
+    }
+
+    /* Container adjustments */
+    .container {
+        width: 100% !important;
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Reset Section Padding */
+    section {
+        padding: 10px 0 !important;
+        background-color: #ffffff !important;
+    }
+
+    /* Headers */
+    .section-header {
+        margin-bottom: 15px !important;
+        border-bottom: 2px solid #000 !important;
+    }
+
+    .section-header h2 {
+        font-size: 18pt !important;
+    }
+
+    .section-number {
+        display: none !important;
+    }
+
+    /* Hero */
+    .hero {
+        min-height: auto !important;
+        padding-top: 0 !important;
+        margin-bottom: 20px !important;
+        display: block !important;
+    }
+
+    .hero-content {
+        display: block !important;
+        text-align: left !important;
+    }
+
+    .hero-text {
+        text-align: center !important;
+        margin-bottom: 15px !important;
+    }
+
+    .hero-text h1 {
+        font-size: 28pt !important;
+        background: none !important;
+        -webkit-text-fill-color: #000 !important;
+    }
+
+    .profile-image {
+        display: none !important;
+        /* Often better to hide profile pic for automated CV screening, or keep it if desired */
+    }
+
+    /* Cards */
+    .experience-card,
+    .education-card,
+    .project-card,
+    .cert-card,
+    .award-card {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin-bottom: 20px !important;
+        break-inside: avoid;
+    }
+
+    .timeline::before,
+    .experience-card::before,
+    .cert-card::before {
+        display: none !important;
+    }
+
+    .experience-card {
+        margin-left: 0 !important;
+    }
+
+    /* Skill Bars -> Text */
+    .skill-bar {
+        border: 1px solid #000 !important;
+        background: #fff !important;
+        height: 6px !important;
+    }
+
+    .skill-progress {
+        background: #000 !important;
+        box-shadow: none !important;
+    }
+
+    /* Links */
+    a {
+        text-decoration: none !important;
+    }
+
+    /* Icons */
+    i,
+    .edu-icon,
+    .award-icon {
+        color: #000 !important;
+    }
+}
