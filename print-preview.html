@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Print Preview</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Preview Control Bar */
+        .preview-controls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #1f2937;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .preview-title {
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .preview-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-preview {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-download {
+            background: #7c3aed;
+            color: white;
+        }
+
+        .btn-download:hover {
+            background: #6d28d9;
+        }
+
+        body {
+            padding-top: 80px;
+            /* Space for fixed header */
+            background-color: #52525b;
+            /* Dark background to make paper pop */
+        }
+
+        /* Paper Simulation */
+        .preview-container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            background: white;
+            padding: 0;
+            /* Let print styles handle padding */
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        /* Hide elements that shouldn't appear in preview wrapper but exist in main css */
+        .navbar,
+        .scroll-top-btn,
+        .hamburger {
+            display: none !important;
+        }
+
+        /* When generating PDF, hide the controls */
+        body.generating-pdf .preview-controls {
+            display: none !important;
+        }
+
+        body.generating-pdf {
+            padding-top: 0 !important;
+            background-color: white !important;
+        }
+
+        body.generating-pdf .preview-container {
+            box-shadow: none !important;
+            margin: 0 !important;
+            width: 100% !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="preview-controls">
+        <div class="preview-title">Print Preview</div>
+        <div class="preview-actions">
+            <button onclick="window.close()" class="btn-preview btn-back">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <button onclick="generatePDF()" class="btn-preview btn-download">
+                <i class="fas fa-file-pdf"></i> Download PDF
+            </button>
+        </div>
+    </div>
+
+    <div id="cv-content" class="preview-container">
+        <!-- Content will be injected/structured here similar to index.html -->
+        <!-- We will basically clone the structure from index.html but statically 
+             or load it dynamically. Since maintaining two HTMLs is hard,
+             let's structure this to serve as a wrapper and we'll inject the 
+             same structure via JS or just copy-paste the structure if static.
+             
+             Clicking 'Download' moved content to a new page, easier to just 
+             replicate the structure for now since it's a client-side app. 
+        -->
+
+        <!-- Hero Section -->
+        <header class="hero">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Your Name</h1>
+                    <p class="tagline">Job Title</p>
+                    <p class="location"><i class="fas fa-map-marker-alt"></i> Location</p>
+                    <!-- Hiding buttons in preview/print -->
+                    <div class="hero-buttons" style="display: none;"></div>
+                </div>
+                <div class="hero-image">
+                    <div class="profile-image">
+                        <img src="" alt="Profile">
+                    </div>
+                </div>
+            </div>
+            <div class="hero-bg-shapes">
+                <div class="shape shape-1"></div>
+                <div class="shape shape-2"></div>
+                <div class="shape shape-3"></div>
+            </div>
+        </header>
+
+        <!-- Contact Info Section -->
+        <section id="contact" class="contact-info">
+            <div class="container">
+                <div class="contact-grid">
+                    <a href="#" class="contact-item"><i class="fas fa-phone"></i><span></span></a>
+                    <a href="#" class="contact-item"><i class="fas fa-envelope"></i><span></span></a>
+                    <a href="#" class="contact-item"><i class="fab fa-linkedin"></i><span></span></a>
+                    <a href="#" class="contact-item"><i class="fab fa-github"></i><span></span></a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Professional Summary -->
+        <section id="about" class="summary">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-number">01</span>
+                    <h2>Professional Summary</h2>
+                </div>
+                <p class="summary-text"></p>
+            </div>
+        </section>
+
+        <!-- Experience Section -->
+        <section id="experience" class="experience">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-number">02</span>
+                    <h2>Experience</h2>
+                </div>
+                <div class="experience-timeline chronology"></div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="skills">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-number">03</span>
+                    <h2>Technical Skills</h2>
+                </div>
+                <div class="skills-grid">
+                    <div class="skill-category" id="technical-skills">
+                        <h3>Technical</h3>
+                    </div>
+                    <div class="skill-category" id="soft-skills">
+                        <h3>Soft Skills</h3>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="projects">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-number">04</span>
+                    <h2>Projects</h2>
+                </div>
+                <div class="projects-grid"></div>
+            </div>
+        </section>
+
+        <!-- Certifications Section -->
+        <section id="certifications" class="certifications">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-number">05</span>
+                    <h2>Certifications</h2>
+                </div>
+                <div class="cert-grid"></div>
+            </div>
+        </section>
+
+        <!-- Awards Section -->
+        <section id="awards" class="awards">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-number">06</span>
+                    <h2>Awards</h2>
+                </div>
+                <div class="awards-grid"></div>
+            </div>
+        </section>
+
+        <!-- Education Section -->
+        <section id="education" class="education">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-number">07</span>
+                    <h2>Education</h2>
+                </div>
+                <div class="education-cards"></div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Override loadCVData slightly or just reuse it? 
+        // We reuse loadCVData from script.js since it targets classes/ids which match.
+
+        function generatePDF() {
+            const element = document.getElementById('cv-content');
+            const opt = {
+                margin: [0, 0, 0, 0],
+                filename: 'my-resume-preview.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    scrollY: 0,
+                    logging: false
+                },
+                jsPDF: {
+                    unit: 'mm',
+                    format: 'a4',
+                    orientation: 'portrait'
+                },
+                pagebreak: { mode: ['css', 'legacy'] }
+            };
+
+            document.body.classList.add('generating-pdf');
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.body.classList.remove('generating-pdf');
+            }).catch(err => {
+                console.error(err);
+                document.body.classList.remove('generating-pdf');
+            });
+        }
+    </script>
+</body>
+
+</html>
