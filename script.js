@@ -984,26 +984,47 @@ function generatePrintFriendlyContent() {
 
 /**
  * Saves the print preview content as PDF
- * @param {HTMLElement} element - The element to convert to PDF
+ * Creates a temporary hidden container to ensure proper rendering
+ * @param {HTMLElement} element - The element to convert to PDF (from modal)
  */
 function saveAsPDF(element) {
     console.log('=== PDF Generation Started ===');
-    console.log('Element:', element);
-    console.log('Element dimensions:', element.offsetWidth, 'x', element.offsetHeight);
     
     const fullName = document.querySelector('.hero-text h1')?.textContent?.trim() || 'Resume';
     const safeFilename = fullName.replace(/[^a-zA-Z0-9]/g, '_');
     
-    // Ensure element is visible and properly sized before generating
-    const originalWidth = element.style.width;
-    element.style.width = '210mm';
+    // Create a hidden container for PDF generation
+    // This ensures html2canvas can properly capture the content
+    const pdfContainer = document.createElement('div');
+    pdfContainer.id = 'pdf-generation-container';
+    pdfContainer.innerHTML = element.innerHTML;
+    
+    // Apply styles to make it render properly but stay hidden
+    pdfContainer.style.cssText = `
+        position: fixed;
+        left: -9999px;
+        top: 0;
+        width: 210mm;
+        min-height: 297mm;
+        background: white;
+        padding: 10mm;
+        box-sizing: border-box;
+        z-index: -9999;
+        overflow: visible;
+    `;
+    
+    // Add to body
+    document.body.appendChild(pdfContainer);
+    
+    console.log('PDF container created:', pdfContainer);
+    console.log('Container dimensions:', pdfContainer.offsetWidth, 'x', pdfContainer.offsetHeight);
     
     const opt = {
-        margin: [10, 10, 10, 10],
+        margin: [0, 0, 0, 0],
         filename: `${safeFilename}_Resume.pdf`,
         image: { 
             type: 'jpeg', 
-            quality: 0.95 
+            quality: 0.98 
         },
         html2canvas: { 
             scale: 2,
@@ -1011,17 +1032,8 @@ function saveAsPDF(element) {
             scrollY: 0,
             scrollX: 0,
             backgroundColor: '#FFFFFF',
-            logging: true,
-            windowWidth: 794,  // A4 width in pixels at 96 DPI
-            onclone: function(clonedDoc) {
-                console.log('Document cloned for PDF');
-                // Ensure cloned document has proper sizing
-                const clonedElement = clonedDoc.getElementById('print-preview-content');
-                if (clonedElement) {
-                    clonedElement.style.width = '210mm';
-                    clonedElement.style.minHeight = '297mm';
-                }
-            }
+            logging: false,
+            windowWidth: 794
         },
         jsPDF: { 
             unit: 'mm', 
@@ -1042,27 +1054,31 @@ function saveAsPDF(element) {
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
     saveBtn.disabled = true;
     
-    html2pdf().set(opt).from(element).toPdf().get('pdf').then(function(pdf) {
-        console.log('PDF generated successfully');
-        console.log('PDF pages:', pdf.internal.getNumberOfPages());
-        
-        // Restore original width
-        element.style.width = originalWidth;
-        
-        // Save the PDF
-        pdf.save(`${safeFilename}_Resume.pdf`);
-        
-        saveBtn.innerHTML = originalText;
-        saveBtn.disabled = false;
-        
-        console.log('=== PDF Generation Complete ===');
-    }).catch(err => {
-        console.error('PDF generation error:', err);
-        element.style.width = originalWidth;
-        saveBtn.innerHTML = originalText;
-        saveBtn.disabled = false;
-        alert('Error generating PDF. Check console for details.');
-    });
+    // Small delay to ensure DOM is ready
+    setTimeout(() => {
+        html2pdf().set(opt).from(pdfContainer).save().then(() => {
+            console.log('PDF saved successfully');
+            
+            // Clean up - remove the temporary container
+            document.body.removeChild(pdfContainer);
+            
+            saveBtn.innerHTML = originalText;
+            saveBtn.disabled = false;
+            
+            console.log('=== PDF Generation Complete ===');
+        }).catch(err => {
+            console.error('PDF generation error:', err);
+            
+            // Clean up on error too
+            if (pdfContainer.parentNode) {
+                document.body.removeChild(pdfContainer);
+            }
+            
+            saveBtn.innerHTML = originalText;
+            saveBtn.disabled = false;
+            alert('Error generating PDF: ' + err.message);
+        });
+    }, 100);
 }
 
 /**
