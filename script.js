@@ -982,143 +982,388 @@ function generatePrintFriendlyContent() {
     return printHTML;
 }
 
+// ============================================
+// PDF GENERATION - FIXED VERSION
+// ============================================
+
+/**
+ * Escape HTML special characters to prevent XSS
+ * @param {string} text - Text to escape
+ * @returns {string} Escaped text
+ */
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+/**
+ * Extract CV data from DOM as fallback
+ * @returns {Object} CV data object
+ */
+function extractDataFromDOM() {
+    return {
+        personal: {
+            fullName: document.querySelector('.hero-text h1')?.textContent?.trim() || '',
+            jobTitle: document.querySelector('.tagline')?.textContent?.trim() || '',
+            location: document.querySelector('.location')?.textContent?.replace(/^[^\w]*/, '')?.trim() || ''
+        },
+        contact: {
+            email: document.querySelector('.contact-item[href^="mailto:"] span')?.textContent?.trim() || '',
+            phone: document.querySelector('.contact-item[href^="tel:"] span')?.textContent?.trim() || '',
+            linkedin: document.querySelector('.contact-item[href*="linkedin"] span')?.textContent?.trim() || '',
+            github: document.querySelector('.contact-item[href*="github"] span')?.textContent?.trim() || ''
+        },
+        summary: document.querySelector('.summary-text')?.textContent?.trim() || ''
+    };
+}
+
+/**
+ * Generate print-friendly HTML from CV data
+ * @returns {string} HTML string for print preview
+ */
+function generatePrintFriendlyHTML() {
+    // Get data from localStorage
+    const savedData = localStorage.getItem('cvData');
+    let cvData = {};
+    
+    if (savedData) {
+        try {
+            cvData = JSON.parse(savedData);
+        } catch (e) {
+            console.error('Error parsing CV data:', e);
+            cvData = extractDataFromDOM();
+        }
+    } else {
+        // Fallback: Extract from current DOM
+        cvData = extractDataFromDOM();
+    }
+    
+    // Build clean HTML
+    return `
+        <div class="print-resume">
+            <!-- HEADER -->
+            <header class="print-header">
+                <h1 class="print-name">${escapeHtml(cvData.personal?.fullName || 'Your Name')}</h1>
+                <p class="print-title">${escapeHtml(cvData.personal?.jobTitle || 'Job Title')}</p>
+                <div class="print-contact-line">
+                    ${cvData.contact?.email ? `<span>${escapeHtml(cvData.contact.email)}</span>` : ''}
+                    ${cvData.contact?.email && cvData.contact?.phone ? `<span class="separator">|</span>` : ''}
+                    ${cvData.contact?.phone ? `<span>${escapeHtml(cvData.contact.phone)}</span>` : ''}
+                    ${cvData.contact?.phone && cvData.contact?.linkedin ? `<span class="separator">|</span>` : ''}
+                    ${cvData.contact?.linkedin ? `<span>${escapeHtml(cvData.contact.linkedin.replace('https://', ''))}</span>` : ''}
+                </div>
+            </header>
+            
+            <!-- SUMMARY -->
+            ${cvData.summary ? `
+            <section class="print-section">
+                <h2 class="print-section-title">Professional Summary</h2>
+                <p class="print-summary">${escapeHtml(cvData.summary)}</p>
+            </section>
+            ` : ''}
+            
+            <!-- EXPERIENCE -->
+            ${cvData.experience && cvData.experience.length > 0 ? `
+            <section class="print-section">
+                <h2 class="print-section-title">Work Experience</h2>
+                ${cvData.experience.map(exp => `
+                    <div class="print-item">
+                        <div class="print-item-header">
+                            <div class="print-item-title">
+                                <strong class="print-company">${escapeHtml(exp.company)}</strong>
+                                <span class="print-role">${escapeHtml(exp.role)}</span>
+                            </div>
+                            <span class="print-date">${escapeHtml(exp.startDate)} - ${escapeHtml(exp.endDate)}</span>
+                        </div>
+                        ${(exp.achievements && exp.achievements.length > 0) ? `
+                            <ul class="print-achievements">
+                                ${exp.achievements.map(ach => `<li>${escapeHtml(ach)}</li>`).join('')}
+                            </ul>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            </section>
+            ` : ''}
+            
+            <!-- EDUCATION -->
+            ${cvData.education && cvData.education.length > 0 ? `
+            <section class="print-section">
+                <h2 class="print-section-title">Education</h2>
+                ${cvData.education.map(edu => `
+                    <div class="print-item">
+                        <div class="print-item-header">
+                            <div class="print-item-title">
+                                <strong>${escapeHtml(edu.degree)}</strong>
+                                <span class="print-institution">${escapeHtml(edu.institution)}</span>
+                            </div>
+                            <span class="print-date">${escapeHtml(edu.graduationDate)}</span>
+                        </div>
+                    </div>
+                `).join('')}
+            </section>
+            ` : ''}
+            
+            <!-- SKILLS -->
+            ${(cvData.technicalSkills?.length > 0 || cvData.softSkills?.length > 0) ? `
+            <section class="print-section">
+                <h2 class="print-section-title">Skills</h2>
+                ${cvData.technicalSkills?.length > 0 ? `
+                    <p class="print-skills-row">
+                        <strong>Technical:</strong> 
+                        ${cvData.technicalSkills.map(s => `${escapeHtml(s.name)} (${s.level}%)`).join(', ')}
+                    </p>
+                ` : ''}
+                ${cvData.softSkills?.length > 0 ? `
+                    <p class="print-skills-row">
+                        <strong>Soft Skills:</strong> 
+                        ${cvData.softSkills.map(s => `${escapeHtml(s.name)} (${s.level}%)`).join(', ')}
+                    </p>
+                ` : ''}
+            </section>
+            ` : ''}
+            
+            <!-- PROJECTS -->
+            ${cvData.projects && cvData.projects.length > 0 ? `
+            <section class="print-section">
+                <h2 class="print-section-title">Projects</h2>
+                ${cvData.projects.map(proj => `
+                    <div class="print-item">
+                        <strong>${escapeHtml(proj.name)}</strong>
+                        <p class="print-project-desc">${escapeHtml(proj.description)}</p>
+                        ${proj.technologies?.length > 0 ? `
+                            <p class="print-tech"><em>Technologies:</em> ${proj.technologies.map(t => escapeHtml(t)).join(', ')}</p>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            </section>
+            ` : ''}
+            
+            <!-- CERTIFICATIONS -->
+            ${cvData.certifications && cvData.certifications.length > 0 ? `
+            <section class="print-section">
+                <h2 class="print-section-title">Certifications</h2>
+                ${cvData.certifications.map(cert => `
+                    <div class="print-item-compact">
+                        <strong>${escapeHtml(cert.name)}</strong> - ${escapeHtml(cert.organization)} (${escapeHtml(cert.year)})
+                    </div>
+                `).join('')}
+            </section>
+            ` : ''}
+            
+            <!-- AWARDS -->
+            ${cvData.awards && cvData.awards.length > 0 ? `
+            <section class="print-section">
+                <h2 class="print-section-title">Awards</h2>
+                ${cvData.awards.map(award => `
+                    <div class="print-item-compact">
+                        <strong>${escapeHtml(award.name)}</strong> - ${escapeHtml(award.organization)} (${escapeHtml(award.year)})
+                    </div>
+                `).join('')}
+            </section>
+            ` : ''}
+        </div>
+    `;
+}
+
 /**
  * Saves the print preview content as PDF
- * Creates a temporary hidden container to ensure proper rendering
- * @param {HTMLElement} element - The element to convert to PDF (from modal)
  */
-function saveAsPDF(element) {
-    console.log('=== PDF Generation Started ===');
+function saveAsPDF() {
+    // Get the preview content element
+    const element = document.getElementById('print-preview-content');
     
-    const fullName = document.querySelector('.hero-text h1')?.textContent?.trim() || 'Resume';
-    const safeFilename = fullName.replace(/[^a-zA-Z0-9]/g, '_');
+    if (!element) {
+        console.error('Error: Cannot find preview content element');
+        alert('Error: Cannot find content to export');
+        return;
+    }
     
-    // Create a hidden container for PDF generation
-    // This ensures html2canvas can properly capture the content
-    const pdfContainer = document.createElement('div');
-    pdfContainer.id = 'pdf-generation-container';
-    pdfContainer.innerHTML = element.innerHTML;
+    // Check if content exists
+    if (!element.innerHTML || element.innerHTML.trim() === '') {
+        console.error('Error: No content to export');
+        alert('Error: No content to export. Please try again.');
+        return;
+    }
     
-    // Apply styles to make it render properly but stay hidden
-    pdfContainer.style.cssText = `
-        position: fixed;
-        left: -9999px;
-        top: 0;
-        width: 210mm;
-        min-height: 297mm;
-        background: white;
-        padding: 10mm;
-        box-sizing: border-box;
-        z-index: -9999;
-        overflow: visible;
-    `;
+    console.log('PDF Generation - Element found:', element);
+    console.log('Content length:', element.innerHTML.length);
     
-    // Add to body
-    document.body.appendChild(pdfContainer);
+    // Get user's name for filename
+    const savedData = localStorage.getItem('cvData');
+    let filename = 'My_Resume.pdf';
     
-    console.log('PDF container created:', pdfContainer);
-    console.log('Container dimensions:', pdfContainer.offsetWidth, 'x', pdfContainer.offsetHeight);
+    if (savedData) {
+        try {
+            const cvData = JSON.parse(savedData);
+            if (cvData.personal?.fullName) {
+                filename = cvData.personal.fullName.replace(/\s+/g, '_') + '_Resume.pdf';
+            }
+        } catch (e) {
+            console.error('Error parsing filename:', e);
+        }
+    }
     
+    // PDF options
     const opt = {
-        margin: [0, 0, 0, 0],
-        filename: `${safeFilename}_Resume.pdf`,
+        margin: [10, 10, 10, 10],
+        filename: filename,
         image: { 
             type: 'jpeg', 
-            quality: 0.98 
+            quality: 0.95 
         },
         html2canvas: { 
             scale: 2,
             useCORS: true,
+            logging: true,
             scrollY: 0,
             scrollX: 0,
-            backgroundColor: '#FFFFFF',
-            logging: false,
-            windowWidth: 794
+            windowWidth: 800
         },
         jsPDF: { 
             unit: 'mm', 
             format: 'a4', 
-            orientation: 'portrait',
-            compress: true
+            orientation: 'portrait' 
         },
         pagebreak: { 
             mode: ['css', 'legacy'],
-            before: ['.print-section-title'],
-            avoid: ['.print-experience-item', '.print-education-item', '.print-project-item']
+            avoid: ['.print-item', '.print-section']
         }
     };
     
-    // Show loading state on button
+    // Show loading state
     const saveBtn = document.getElementById('save-pdf-btn');
     const originalText = saveBtn.innerHTML;
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
     saveBtn.disabled = true;
     
-    // Small delay to ensure DOM is ready
-    setTimeout(() => {
-        html2pdf().set(opt).from(pdfContainer).save().then(() => {
-            console.log('PDF saved successfully');
-            
-            // Clean up - remove the temporary container
-            document.body.removeChild(pdfContainer);
-            
-            saveBtn.innerHTML = originalText;
-            saveBtn.disabled = false;
-            
-            console.log('=== PDF Generation Complete ===');
-        }).catch(err => {
-            console.error('PDF generation error:', err);
-            
-            // Clean up on error too
-            if (pdfContainer.parentNode) {
-                document.body.removeChild(pdfContainer);
-            }
-            
-            saveBtn.innerHTML = originalText;
-            saveBtn.disabled = false;
-            alert('Error generating PDF: ' + err.message);
-        });
-    }, 100);
+    console.log('Starting PDF generation...');
+    
+    // Generate PDF
+    html2pdf().set(opt).from(element).save().then(() => {
+        console.log('PDF generated and saved successfully');
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+    }).catch(err => {
+        console.error('PDF generation error:', err);
+        alert('Error generating PDF: ' + err.message);
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+    });
 }
 
+// ============================================
+// MODAL CLOSE FUNCTIONALITY - FIXED VERSION
+// ============================================
+
 /**
- * Debug function to check PDF readiness
+ * Close the print preview modal
  */
-function debugPDF() {
-    console.log('=== PDF DEBUG INFO ===');
-    console.log('Window width:', window.innerWidth);
-    console.log('Window height:', window.innerHeight);
-    console.log('Device pixel ratio:', window.devicePixelRatio);
-    
-    const previewContainer = document.getElementById('print-preview-content');
-    if (previewContainer) {
-        console.log('Preview container found');
-        console.log('Container width:', previewContainer.offsetWidth);
-        console.log('Container height:', previewContainer.offsetHeight);
-        console.log('Container scrollHeight:', previewContainer.scrollHeight);
-    } else {
-        console.error('Preview container NOT found');
-    }
-    
+function closePrintModal() {
     const modal = document.getElementById('print-preview-modal');
+    
     if (modal) {
-        console.log('Modal found');
-    } else {
-        console.error('Modal NOT found');
+        // Hide modal
+        modal.classList.remove('show');
+        
+        // Restore body scroll
+        document.body.style.overflow = '';
+        
+        // Clear preview content (optional - saves memory)
+        const previewContent = document.getElementById('print-preview-content');
+        if (previewContent) {
+            previewContent.innerHTML = '';
+        }
+        
+        console.log('Modal closed');
     }
-    console.log('=====================');
 }
 
 /**
- * Updated function to open print preview modal
+ * Initialize modal event handlers
+ */
+function initModalHandlers() {
+    const modal = document.getElementById('print-preview-modal');
+    const closeBtn = document.querySelector('.close-modal');
+    const cancelBtn = document.querySelector('.close-modal-btn');
+    const saveBtn = document.getElementById('save-pdf-btn');
+    
+    console.log('Initializing modal handlers...');
+    console.log('Modal:', modal);
+    console.log('Close button:', closeBtn);
+    console.log('Cancel button:', cancelBtn);
+    console.log('Save button:', saveBtn);
+    
+    // Close on X button click
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Close button clicked');
+            closePrintModal();
+        });
+    }
+    
+    // Close on Cancel button click
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Cancel button clicked');
+            closePrintModal();
+        });
+    }
+    
+    // Save PDF and close
+    if (saveBtn) {
+        // Remove any existing listeners to prevent duplicates
+        saveBtn.replaceWith(saveBtn.cloneNode(true));
+        const newSaveBtn = document.getElementById('save-pdf-btn');
+        
+        newSaveBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Save PDF button clicked');
+            saveAsPDF();
+        });
+    }
+    
+    // Close on clicking outside modal (backdrop)
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                console.log('Backdrop clicked');
+                closePrintModal();
+            }
+        });
+    }
+    
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('print-preview-modal');
+            if (modal && modal.classList.contains('show')) {
+                console.log('Escape key pressed');
+                closePrintModal();
+            }
+        }
+    });
+    
+    console.log('Modal handlers initialized');
+}
+
+/**
+ * Open print preview modal with print-friendly content
  * @param {Event} event - Click event
  */
 function openPrintPreview(event) {
     if (event) event.preventDefault();
     
+    console.log('Opening print preview...');
+    
     const modal = document.getElementById('print-preview-modal');
     const previewContainer = document.getElementById('print-preview-content');
-    const saveBtn = document.getElementById('save-pdf-btn');
     
     if (!modal || !previewContainer) {
         console.error('Modal elements not found');
@@ -1126,23 +1371,24 @@ function openPrintPreview(event) {
     }
     
     // 1. Generate print-friendly content
-    const printContent = generatePrintFriendlyContent();
+    const printContent = generatePrintFriendlyHTML();
     
     // 2. Insert into preview container
     previewContainer.innerHTML = printContent;
+    
+    console.log('Preview content inserted, length:', printContent.length);
     
     // 3. Show modal
     modal.classList.add('show');
     document.body.style.overflow = 'hidden';
     
-    // 4. Run debug after a short delay to let rendering complete
-    setTimeout(debugPDF, 500);
-    
-    // 5. Setup PDF save button
-    saveBtn.onclick = function() {
-        debugPDF();
-        saveAsPDF(previewContainer);
-    };
+    console.log('Modal shown');
 }
+
+// Initialize modal handlers when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded - initializing modal handlers');
+    initModalHandlers();
+});
 
 

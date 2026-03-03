@@ -514,16 +514,18 @@
     <div id="print-preview-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>📄 Print Preview</h2>
-                <button class="close-modal">&times;</button>
+                <h2><i class="fas fa-file-pdf"></i> Print Preview</h2>
+                <button type="button" class="close-modal" aria-label="Close">&times;</button>
             </div>
             <div class="modal-body">
                 <!-- Print-friendly content renders here -->
                 <div id="print-preview-content"></div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary close-modal-btn">Cancel</button>
-                <button id="save-pdf-btn" class="btn btn-primary">
+                <button type="button" class="btn btn-secondary close-modal-btn">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" id="save-pdf-btn" class="btn btn-primary">
                     <i class="fas fa-download"></i> Save PDF
                 </button>
             </div>
