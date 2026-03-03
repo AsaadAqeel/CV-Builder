@@ -4,6 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self';">
+    <meta name="description" content="Professional CV Builder - Create and customize your resume with our easy-to-use editor">
+    <meta name="keywords" content="CV, resume, portfolio, job application">
+    <meta name="author" content="Your Name">
+    <meta property="og:title" content="CV Builder - Professional Resume Creator">
+    <meta property="og:description" content="Create beautiful, professional CVs with our free online builder">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="path/to/preview-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="CV Builder">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <title>CV Editor - Manage Your Information</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="dashboard.css">
@@ -13,6 +24,12 @@
 </head>
 
 <body class="dashboard-body">
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ef4444; color: white; padding: 20px; text-align: center; z-index: 9999; font-family: system-ui, sans-serif;">
+            <strong>JavaScript is required for this application to function properly.</strong> Please enable JavaScript in your browser settings.
+        </div>
+    </noscript>
+    
     <!-- Dashboard Navigation -->
     <nav class="dashboard-nav">
         <div class="nav-brand">
@@ -20,10 +37,10 @@
             <span>CV Editor</span>
         </div>
         <div class="nav-actions">
-            <button class="btn btn-secondary" onclick="togglePreview()" title="Split Screen">
+            <button class="btn btn-secondary" onclick="togglePreview()" title="Split Screen" aria-label="Toggle split screen preview">
                 <i class="fas fa-columns"></i>
             </button>
-            <a href="index.html" target="_blank" class="btn btn-primary">
+            <a href="index.html" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
                 <i class="fas fa-eye"></i> View CV
             </a>
             <button class="btn btn-success" onclick="saveAllData()">
@@ -358,7 +375,7 @@
                 <button type="button" class="btn btn-success btn-large" onclick="saveAllData()">
                     <i class="fas fa-save"></i> Save All Changes
                 </button>
-                <a href="index.html" target="_blank" class="btn btn-primary btn-large">
+                <a href="index.html" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-large">
                     <i class="fas fa-eye"></i> Preview CV
                 </a>
                 <button type="button" class="btn btn-secondary btn-large" onclick="exportStaticWebsite()">
@@ -373,7 +390,11 @@
         </div>
     </div>
 
-    <!-- Export Libraries -->
+    <!-- 
+        PERFORMANCE NOTE: Consider bundling and minifying JS files for production.
+        Use tools like Webpack, Rollup, or esbuild to create optimized bundles.
+        Tree-shake unused JSZip features to reduce bundle size.
+    -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="dashboard.js"></script>

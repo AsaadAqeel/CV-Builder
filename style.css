@@ -1,10 +1,21 @@
+/* 
+ * CV Builder Stylesheet
+ * 
+ * PERFORMANCE NOTE: Minify this CSS for production using tools like:
+ * - cssnano (PostCSS)
+ * - clean-css
+ * - Online minifiers
+ * 
+ * This will reduce file size and improve load times.
+ */
+
 /* ===== CSS VARIABLES ===== */
 :root {
     /* Color Palette */
     --violet: #7c3aed;
     --violet-light: #8b5cf6;
     --violet-dark: #5b21b6;
-    --veronic: #a855f7;
+    --veronicaa: #a855f7;
     --blue: #3b82f6;
     --blue-light: #60a5fa;
     --red: #ef4444;
@@ -18,7 +29,7 @@
     --gray-800: #1f2937;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, var(--violet) 0%, var(--veronic) 50%, var(--blue) 100%);
+    --gradient-primary: linear-gradient(135deg, var(--violet) 0%, var(--veronica) 50%, var(--blue) 100%);
     --gradient-secondary: linear-gradient(135deg, var(--violet-dark) 0%, var(--violet) 100%);
     --gradient-red: linear-gradient(135deg, var(--red) 0%, var(--red-light) 100%);
     --gradient-dark: linear-gradient(135deg, var(--black) 0%, var(--gray-800) 100%);
@@ -554,7 +565,8 @@ section {
 }
 
 .skill-info span:last-child {
-    color: var(--violet-light);
+    color: var(--white);
+    font-weight: 600;
 }
 
 .skill-bar {
@@ -1180,9 +1192,9 @@ body[data-theme="blue"],
     --violet: #2563eb;
     --violet-light: #3b82f6;
     --violet-dark: #1d4ed8;
-    --veronic: #06b6d4;
+    --veronica: #06b6d4;
     --blue: #0ea5e9;
-    --gradient-primary: linear-gradient(135deg, var(--violet) 0%, var(--veronic) 50%, var(--blue) 100%);
+    --gradient-primary: linear-gradient(135deg, var(--violet) 0%, var(--veronica) 50%, var(--blue) 100%);
     --gradient-secondary: linear-gradient(135deg, var(--violet-dark) 0%, var(--violet) 100%);
 }
 
@@ -1191,9 +1203,9 @@ body[data-theme="green"],
     --violet: #059669;
     --violet-light: #10b981;
     --violet-dark: #047857;
-    --veronic: #34d399;
+    --veronica: #34d399;
     --blue: #064e3b;
-    --gradient-primary: linear-gradient(135deg, var(--violet) 0%, var(--veronic) 50%, var(--blue) 100%);
+    --gradient-primary: linear-gradient(135deg, var(--violet) 0%, var(--veronica) 50%, var(--blue) 100%);
     --gradient-secondary: linear-gradient(135deg, var(--violet-dark) 0%, var(--violet) 100%);
 }
 
@@ -1202,9 +1214,9 @@ body[data-theme="purple"],
     --violet: #9333ea;
     --violet-light: #a855f7;
     --violet-dark: #7e22ce;
-    --veronic: #db2777;
+    --veronica: #db2777;
     --blue: #c026d3;
-    --gradient-primary: linear-gradient(135deg, var(--violet) 0%, var(--veronic) 50%, var(--blue) 100%);
+    --gradient-primary: linear-gradient(135deg, var(--violet) 0%, var(--veronica) 50%, var(--blue) 100%);
     --gradient-secondary: linear-gradient(135deg, var(--violet-dark) 0%, var(--violet) 100%);
 }
 
@@ -1213,9 +1225,9 @@ body[data-theme="orange"],
     --violet: #ea580c;
     --violet-light: #f97316;
     --violet-dark: #c2410c;
-    --veronic: #f59e0b;
+    --veronica: #f59e0b;
     --blue: #d97706;
-    --gradient-primary: linear-gradient(135deg, var(--violet) 0%, var(--veronic) 50%, var(--blue) 100%);
+    --gradient-primary: linear-gradient(135deg, var(--violet) 0%, var(--veronica) 50%, var(--blue) 100%);
     --gradient-secondary: linear-gradient(135deg, var(--violet-dark) 0%, var(--violet) 100%);
 }
 

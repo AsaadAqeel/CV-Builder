@@ -232,6 +232,35 @@
     box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
 }
 
+/* ===== VALIDATION STYLES ===== */
+.form-group input.error,
+.form-group textarea.error,
+.form-group select.error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+.form-group input.error:focus,
+.form-group textarea.error:focus,
+.form-group select.error:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+}
+
+.field-error {
+    color: #ef4444;
+    font-size: 0.85rem;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.field-error::before {
+    content: '⚠';
+    font-size: 14px;
+}
+
 .form-group input::placeholder,
 .form-group textarea::placeholder {
     color: #6b7280;

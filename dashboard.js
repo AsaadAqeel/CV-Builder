@@ -1,6 +1,173 @@
 // ===== DASHBOARD JAVASCRIPT =====
 // Handles form data, localStorage, and dynamic form elements
 
+// ===== SECURITY: XSS SANITIZATION =====
+/**
+ * Sanitizes HTML content to prevent XSS attacks
+ * Escapes dangerous characters that could be used for script injection
+ * @param {string} str - The string to sanitize
+ * @returns {string} - The sanitized string safe for HTML insertion
+ */
+function sanitizeHTML(str) {
+    if (typeof str !== 'string') return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+/**
+ * Validates and sanitizes URLs to prevent javascript: and data: protocol attacks
+ * @param {string} url - The URL to validate
+ * @returns {string} - The sanitized URL or empty string if invalid
+ */
+function sanitizeURL(url) {
+    if (typeof url !== 'string') return '';
+    const allowedProtocols = ['http:', 'https:', 'mailto:', 'tel:'];
+    try {
+        const parsed = new URL(url, window.location.origin);
+        if (allowedProtocols.includes(parsed.protocol)) {
+            return parsed.href;
+        }
+    } catch (e) {
+        // If URL parsing fails, check if it's a relative URL or tel:/mailto:
+        if (url.match(/^(mailto:|tel:)/i)) {
+            return url;
+        }
+    }
+    return '';
+}
+
+// ===== INPUT VALIDATION =====
+const validationRules = {
+    email: {
+        pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        message: 'Please enter a valid email address'
+    },
+    phone: {
+        pattern: /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,4}[-\s\.]?[0-9]{1,9}$/,
+        message: 'Please enter a valid phone number'
+    },
+    url: {
+        pattern: /^https?:\/\/.+/i,
+        message: 'URL must start with http:// or https://'
+    },
+    required: {
+        pattern: /.+/, 
+        message: 'This field is required'
+    }
+};
+
+/**
+ * Validates a field value against a rule
+ * @param {string} value - The value to validate
+ * @param {string} ruleName - The name of the validation rule
+ * @returns {object} - { isValid: boolean, message: string }
+ */
+function validateField(value, ruleName) {
+    const rule = validationRules[ruleName];
+    if (!rule) return { isValid: true, message: '' };
+    
+    const isValid = rule.pattern.test(value);
+    return {
+        isValid: isValid,
+        message: isValid ? '' : rule.message
+    };
+}
+
+/**
+ * Shows validation error for an input field
+ * @param {HTMLElement} input - The input element
+ * @param {string} message - Error message to display
+ */
+function showFieldError(input, message) {
+    // Remove existing error
+    removeFieldError(input);
+    
+    // Add error styling
+    input.classList.add('error');
+    input.setAttribute('aria-invalid', 'true');
+    
+    // Create and append error message
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'field-error';
+    errorDiv.textContent = message;
+    errorDiv.style.color = '#ef4444';
+    errorDiv.style.fontSize = '0.85rem';
+    errorDiv.style.marginTop = '4px';
+    errorDiv.id = `${input.id}-error`;
+    
+    input.parentNode.appendChild(errorDiv);
+    input.setAttribute('aria-describedby', errorDiv.id);
+}
+
+/**
+ * Removes validation error from an input field
+ * @param {HTMLElement} input - The input element
+ */
+function removeFieldError(input) {
+    input.classList.remove('error');
+    input.removeAttribute('aria-invalid');
+    input.removeAttribute('aria-describedby');
+    
+    const existingError = input.parentNode.querySelector('.field-error');
+    if (existingError) {
+        existingError.remove();
+    }
+}
+
+/**
+ * Validates all form inputs
+ * @returns {boolean} - True if all fields are valid
+ */
+function validateAllFields() {
+    let isValid = true;
+    
+    // Required fields
+    const requiredFields = ['fullName', 'jobTitle', 'email', 'professionalSummary'];
+    requiredFields.forEach(fieldId => {
+        const input = document.getElementById(fieldId);
+        if (input && !input.value.trim()) {
+            showFieldError(input, validationRules.required.message);
+            isValid = false;
+        }
+    });
+    
+    // Email validation
+    const emailInput = document.getElementById('email');
+    if (emailInput && emailInput.value.trim()) {
+        const result = validateField(emailInput.value, 'email');
+        if (!result.isValid) {
+            showFieldError(emailInput, result.message);
+            isValid = false;
+        }
+    }
+    
+    // Phone validation (if provided)
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput && phoneInput.value.trim()) {
+        const result = validateField(phoneInput.value, 'phone');
+        if (!result.isValid) {
+            showFieldError(phoneInput, result.message);
+            isValid = false;
+        }
+    }
+    
+    // URL validations
+    const urlFields = ['linkedin', 'github', 'website', 'twitter'];
+    urlFields.forEach(fieldId => {
+        const input = document.getElementById(fieldId);
+        if (input && input.value.trim()) {
+            const result = validateField(input.value, 'url');
+            if (!result.isValid) {
+                showFieldError(input, result.message);
+                isValid = false;
+            }
+        }
+    });
+    
+    return isValid;
+}
+
 // Data structure for storing CV information
 let cvData = {
     personal: {
@@ -151,7 +318,89 @@ document.addEventListener('DOMContentLoaded', function () {
     setupDesign();
     setupCharacterCount();
     setupImageUpload();
+    setupValidationListeners();
 });
+
+// ===== REAL-TIME VALIDATION =====
+function setupValidationListeners() {
+    // Email validation
+    const emailInput = document.getElementById('email');
+    if (emailInput) {
+        emailInput.addEventListener('blur', function() {
+            if (this.value.trim()) {
+                const result = validateField(this.value, 'email');
+                if (!result.isValid) {
+                    showFieldError(this, result.message);
+                } else {
+                    removeFieldError(this);
+                }
+            } else {
+                removeFieldError(this);
+            }
+        });
+        
+        emailInput.addEventListener('input', function() {
+            if (this.classList.contains('error')) {
+                const result = validateField(this.value, 'email');
+                if (result.isValid) {
+                    removeFieldError(this);
+                }
+            }
+        });
+    }
+    
+    // Phone validation
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('blur', function() {
+            if (this.value.trim()) {
+                const result = validateField(this.value, 'phone');
+                if (!result.isValid) {
+                    showFieldError(this, result.message);
+                } else {
+                    removeFieldError(this);
+                }
+            } else {
+                removeFieldError(this);
+            }
+        });
+    }
+    
+    // URL validations
+    const urlFields = ['linkedin', 'github', 'website', 'twitter'];
+    urlFields.forEach(fieldId => {
+        const input = document.getElementById(fieldId);
+        if (input) {
+            input.addEventListener('blur', function() {
+                if (this.value.trim()) {
+                    const result = validateField(this.value, 'url');
+                    if (!result.isValid) {
+                        showFieldError(this, result.message);
+                    } else {
+                        removeFieldError(this);
+                    }
+                } else {
+                    removeFieldError(this);
+                }
+            });
+        }
+    });
+    
+    // Required field validations
+    const requiredFields = ['fullName', 'jobTitle', 'professionalSummary'];
+    requiredFields.forEach(fieldId => {
+        const input = document.getElementById(fieldId);
+        if (input) {
+            input.addEventListener('blur', function() {
+                if (!this.value.trim()) {
+                    showFieldError(this, validationRules.required.message);
+                } else {
+                    removeFieldError(this);
+                }
+            });
+        }
+    });
+}
 
 // ===== DESIGN SETTINGS =====
 function setupDesign() {
@@ -246,6 +495,24 @@ function loadData() {
 
 // Save data to localStorage
 function saveAllData(silent = false) {
+    // Validate all fields before saving
+    if (!validateAllFields()) {
+        // Show error message
+        const message = document.getElementById('successMessage');
+        const originalHTML = message.innerHTML;
+        message.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>Please fix the validation errors before saving.</span>';
+        message.style.background = '#ef4444';
+        message.classList.add('show');
+        setTimeout(() => {
+            message.classList.remove('show');
+            setTimeout(() => {
+                message.innerHTML = originalHTML;
+                message.style.background = '';
+            }, 300);
+        }, 3000);
+        return;
+    }
+    
     collectFormData();
     localStorage.setItem('cvData', JSON.stringify(cvData));
     calculateStrength();
@@ -439,26 +706,26 @@ function createExperienceItem(exp = {}, index) {
         <div class="form-grid">
             <div class="form-group">
                 <label>Company Name</label>
-                <input type="text" class="exp-company" value="${exp.company || ''}" placeholder="TechCorp Solutions">
+                <input type="text" class="exp-company" value="${sanitizeHTML(exp.company || '')}" placeholder="TechCorp Solutions">
             </div>
             <div class="form-group">
                 <label>Job Title</label>
-                <input type="text" class="exp-role" value="${exp.role || ''}" placeholder="Senior Software Engineer">
+                <input type="text" class="exp-role" value="${sanitizeHTML(exp.role || '')}" placeholder="Senior Software Engineer">
             </div>
             <div class="form-group">
                 <label>Start Date</label>
-                <input type="text" class="exp-start" value="${exp.startDate || ''}" placeholder="2021">
+                <input type="text" class="exp-start" value="${sanitizeHTML(exp.startDate || '')}" placeholder="2021">
             </div>
             <div class="form-group">
                 <label>End Date</label>
-                <input type="text" class="exp-end" value="${exp.endDate || ''}" placeholder="Present">
+                <input type="text" class="exp-end" value="${sanitizeHTML(exp.endDate || '')}" placeholder="Present">
             </div>
             <div class="form-group full-width">
                 <label>Key Achievements</label>
                 <div class="achievements-container">
                     ${(exp.achievements || []).map((ach, i) => `
                         <div class="achievement-row">
-                            <input type="text" class="exp-achievement" value="${ach}" placeholder="Describe your achievement (quantified)">
+                            <input type="text" class="exp-achievement" value="${sanitizeHTML(ach)}" placeholder="Describe your achievement (quantified)">
                             <button type="button" class="btn-remove" onclick="this.parentElement.remove()">
                                 <i class="fas fa-times"></i>
                             </button>
@@ -566,19 +833,19 @@ function createEducationItem(edu = {}, index) {
         <div class="form-grid">
             <div class="form-group full-width">
                 <label>Degree/Certificate</label>
-                <input type="text" class="edu-degree" value="${edu.degree || ''}" placeholder="Master of Science in Computer Science">
+                <input type="text" class="edu-degree" value="${sanitizeHTML(edu.degree || '')}" placeholder="Master of Science in Computer Science">
             </div>
             <div class="form-group full-width">
                 <label>Institution</label>
-                <input type="text" class="edu-institution" value="${edu.institution || ''}" placeholder="Stanford University">
+                <input type="text" class="edu-institution" value="${sanitizeHTML(edu.institution || '')}" placeholder="Stanford University">
             </div>
             <div class="form-group">
                 <label>Graduation Date</label>
-                <input type="text" class="edu-date" value="${edu.graduationDate || ''}" placeholder="2016">
+                <input type="text" class="edu-date" value="${sanitizeHTML(edu.graduationDate || '')}" placeholder="2016">
             </div>
             <div class="form-group">
                 <label>GPA (Optional)</label>
-                <input type="text" class="edu-gpa" value="${edu.gpa || ''}" placeholder="3.9">
+                <input type="text" class="edu-gpa" value="${sanitizeHTML(edu.gpa || '')}" placeholder="3.9">
             </div>
             <div class="form-group full-width">
                 <label>Degree File (Image/PDF)</label>
@@ -641,7 +908,7 @@ function createSkillItem(skill = {}, index, type) {
     div.className = 'skill-input-row';
     div.innerHTML = `
         <div class="form-group" style="margin: 0;">
-            <input type="text" class="skill-name-${type}" value="${skill.name || ''}" placeholder="Skill Name">
+            <input type="text" class="skill-name-${type}" value="${sanitizeHTML(skill.name || '')}" placeholder="Skill Name">
         </div>
         <div class="form-group" style="margin: 0;">
             <input type="range" class="skill-level-${type}" value="${skill.level || 50}" min="0" max="100" 
@@ -705,26 +972,26 @@ function createProjectItem(proj = {}, index) {
         <div class="form-grid">
             <div class="form-group full-width">
                 <label>Project Name</label>
-                <input type="text" class="proj-name" value="${proj.name || ''}" placeholder="E-Commerce Platform">
+                <input type="text" class="proj-name" value="${sanitizeHTML(proj.name || '')}" placeholder="E-Commerce Platform">
             </div>
             <div class="form-group full-width">
                 <label>Description</label>
-                <textarea class="proj-desc" rows="3" placeholder="Brief description of the project">${proj.description || ''}</textarea>
+                <textarea class="proj-desc" rows="3" placeholder="Brief description of the project">${sanitizeHTML(proj.description || '')}</textarea>
             </div>
             <div class="form-group">
                 <label>Demo URL</label>
-                <input type="url" class="proj-demo" value="${proj.demoUrl || ''}" placeholder="https://demo.com">
+                <input type="url" class="proj-demo" value="${sanitizeHTML(proj.demoUrl || '')}" placeholder="https://demo.com">
             </div>
             <div class="form-group">
                 <label>Source Code URL</label>
-                <input type="url" class="proj-code" value="${proj.codeUrl || ''}" placeholder="https://github.com">
+                <input type="url" class="proj-code" value="${sanitizeHTML(proj.codeUrl || '')}" placeholder="https://github.com">
             </div>
             <div class="form-group full-width">
                 <label>Technologies Used (press Enter to add)</label>
                 <div class="tech-tags-container" onclick="document.querySelector('.tech-input').focus()">
                     ${(proj.technologies || []).map(tech => `
                         <span class="tech-tag">
-                            ${tech}
+                            ${sanitizeHTML(tech)}
                             <i class="fas fa-times remove-tag" onclick="this.parentElement.remove()"></i>
                         </span>
                     `).join('')}
@@ -831,15 +1098,15 @@ function createCertificationItem(cert = {}, index) {
         <div class="form-grid">
             <div class="form-group full-width">
                 <label>Certification Name</label>
-                <input type="text" class="cert-name" value="${cert.name || ''}" placeholder="AWS Solutions Architect">
+                <input type="text" class="cert-name" value="${sanitizeHTML(cert.name || '')}" placeholder="AWS Solutions Architect">
             </div>
             <div class="form-group">
                 <label>Issuing Organization</label>
-                <input type="text" class="cert-org" value="${cert.organization || ''}" placeholder="Amazon Web Services">
+                <input type="text" class="cert-org" value="${sanitizeHTML(cert.organization || '')}" placeholder="Amazon Web Services">
             </div>
             <div class="form-group">
                 <label>Year</label>
-                <input type="text" class="cert-year" value="${cert.year || ''}" placeholder="2023">
+                <input type="text" class="cert-year" value="${sanitizeHTML(cert.year || '')}" placeholder="2023">
             </div>
             <div class="form-group full-width">
                 <label>Certificate File (Image/PDF)</label>
@@ -921,15 +1188,15 @@ function createAwardItem(award = {}, index) {
         <div class="form-grid">
             <div class="form-group full-width">
                 <label>Award Name</label>
-                <input type="text" class="award-name" value="${award.name || ''}" placeholder="Employee of the Year">
+                <input type="text" class="award-name" value="${sanitizeHTML(award.name || '')}" placeholder="Employee of the Year">
             </div>
             <div class="form-group">
                 <label>Organization</label>
-                <input type="text" class="award-org" value="${award.organization || ''}" placeholder="Company Name">
+                <input type="text" class="award-org" value="${sanitizeHTML(award.organization || '')}" placeholder="Company Name">
             </div>
             <div class="form-group">
                 <label>Year</label>
-                <input type="text" class="award-year" value="${award.year || ''}" placeholder="2023">
+                <input type="text" class="award-year" value="${sanitizeHTML(award.year || '')}" placeholder="2023">
             </div>
             <div class="form-group full-width">
                 <label>Award File (Image/PDF)</label>

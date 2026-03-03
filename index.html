@@ -4,20 +4,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self';">
+    <meta name="description" content="Professional CV Builder - Create and customize your resume with our easy-to-use editor">
+    <meta name="keywords" content="CV, resume, portfolio, job application">
+    <meta name="author" content="Your Name">
+    <meta property="og:title" content="CV Builder - Professional Resume Creator">
+    <meta property="og:description" content="Create beautiful, professional CVs with our free online builder">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="path/to/preview-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="CV Builder">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <title>Professional CV</title>
     <link rel="stylesheet" href="style.css">
+    <!-- 
+        PERFORMANCE NOTE: Consider self-hosting fonts or using font-display: swap
+        to prevent layout shift. The &display=swap parameter below helps.
+    -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
+    <!-- 
+        PERFORMANCE NOTE: Consider using a subset of Font Awesome icons or
+        switching to SVG icons to reduce bundle size. Only load icons you need.
+    -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #ef4444; color: white; padding: 20px; text-align: center; z-index: 9999; font-family: system-ui, sans-serif;">
+            <strong>JavaScript is required for this application to function properly.</strong> Please enable JavaScript in your browser settings.
+        </div>
+    </noscript>
+    
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-brand">
             <span class="logo">CV</span>
         </div>
-        <div class="nav-links">
+        <div class="nav-links" id="nav-links">
             <a href="#about">About</a>
             <a href="#experience">Experience</a>
             <a href="#skills">Skills</a>
@@ -25,11 +50,11 @@
             <a href="#contact">Contact</a>
             <a href="dashboard.html" class="btn-nav">Edit CV</a>
         </div>
-        <div class="hamburger">
+        <button class="hamburger" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="nav-links">
             <span></span>
             <span></span>
             <span></span>
-        </div>
+        </button>
     </nav>
 
     <div id="cv-content">
@@ -42,13 +67,13 @@
                     <p class="location"><i class="fas fa-map-marker-alt"></i> San Francisco, CA</p>
                     <div class="hero-buttons">
                         <a href="#contact" class="btn btn-primary">Get In Touch</a>
-                        <a href="#" onclick="openPrintPreview(event)" class="btn btn-secondary">Download CV</a>
+                        <a href="javascript:void(0)" onclick="openPrintPreview(event)" class="btn btn-secondary" role="button">Download CV</a>
                     </div>
                 </div>
                 <div class="hero-image">
                     <div class="profile-image">
                         <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop"
-                            alt="Profile">
+                            alt="Professional headshot photo" loading="lazy">
                     </div>
                 </div>
             </div>
@@ -71,11 +96,11 @@
                         <i class="fas fa-envelope"></i>
                         <span>john.doe@email.com</span>
                     </a>
-                    <a href="https://linkedin.com/in/johndoe" target="_blank" class="contact-item">
+                    <a href="https://linkedin.com/in/johndoe" target="_blank" rel="noopener noreferrer" class="contact-item">
                         <i class="fab fa-linkedin"></i>
                         <span>linkedin.com/in/johndoe</span>
                     </a>
-                    <a href="https://github.com/johndoe" target="_blank" class="contact-item">
+                    <a href="https://github.com/johndoe" target="_blank" rel="noopener noreferrer" class="contact-item">
                         <i class="fab fa-github"></i>
                         <span>github.com/johndoe</span>
                     </a>
@@ -376,9 +401,9 @@
                                 <span>Node.js</span>
                                 <span>MongoDB</span>
                             </div>
-                            <div class="project-links">
-                                <a href="#" class="btn-small">View Demo</a>
-                                <a href="#" class="btn-small btn-outline">Source Code</a>
+<div class="project-links">
+                                <a href="javascript:void(0)" class="btn-small" role="button" aria-label="View demo - Coming soon">View Demo</a>
+                                <a href="javascript:void(0)" class="btn-small btn-outline" role="button" aria-label="View source code - Coming soon">Source Code</a>
                             </div>
                         </div>
                     </div>
@@ -397,8 +422,8 @@
                                 <span>D3.js</span>
                             </div>
                             <div class="project-links">
-                                <a href="#" class="btn-small">View Demo</a>
-                                <a href="#" class="btn-small btn-outline">Source Code</a>
+                                <a href="javascript:void(0)" class="btn-small" role="button" aria-label="View demo - Coming soon">View Demo</a>
+                                <a href="javascript:void(0)" class="btn-small btn-outline" role="button" aria-label="View source code - Coming soon">Source Code</a>
                             </div>
                         </div>
                     </div>
@@ -418,8 +443,8 @@
                                 <span>Node.js</span>
                             </div>
                             <div class="project-links">
-                                <a href="#" class="btn-small">View Demo</a>
-                                <a href="#" class="btn-small btn-outline">Source Code</a>
+                                <a href="javascript:void(0)" class="btn-small" role="button" aria-label="View demo - Coming soon">View Demo</a>
+                                <a href="javascript:void(0)" class="btn-small btn-outline" role="button" aria-label="View source code - Coming soon">Source Code</a>
                             </div>
                         </div>
                     </div>
@@ -477,9 +502,9 @@
             <div class="footer-content">
                 <p>&copy; 2024 John Doe. All rights reserved.</p>
                 <div class="social-links">
-                    <a href="#"><i class="fab fa-linkedin"></i></a>
-                    <a href="#"><i class="fab fa-github"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="https://linkedin.com/in/johndoe" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn Profile"><i class="fab fa-linkedin"></i></a>
+                    <a href="https://github.com/johndoe" target="_blank" rel="noopener noreferrer" aria-label="GitHub Profile"><i class="fab fa-github"></i></a>
+                    <a href="https://twitter.com/johndoe" target="_blank" rel="noopener noreferrer" aria-label="Twitter Profile"><i class="fab fa-twitter"></i></a>
                 </div>
             </div>
         </div>
@@ -502,6 +527,10 @@
         </div>
     </div>
 
+    <!-- 
+        PERFORMANCE NOTE: Consider bundling and minifying JS files for production.
+        Use tools like Webpack, Rollup, or esbuild to create optimized bundles.
+    -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="script.js"></script>
     <script>

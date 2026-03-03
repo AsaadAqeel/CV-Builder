@@ -1,4 +1,19 @@
 // ===== LOAD CV DATA FROM LOCALSTORAGE =====
+
+// ===== SECURITY: XSS SANITIZATION =====
+/**
+ * Sanitizes HTML content to prevent XSS attacks
+ * Escapes dangerous characters that could be used for script injection
+ * @param {string} str - The string to sanitize
+ * @returns {string} - The sanitized string safe for HTML insertion
+ */
+function sanitizeHTML(str) {
+    if (typeof str !== 'string') return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     loadCVData();
 });
@@ -117,13 +132,13 @@ function renderExperience(experiences) {
         <div class="experience-card">
             <div class="experience-header">
                 <div class="company-info">
-                    <h3>${exp.company}</h3>
-                    <span class="role">${exp.role}</span>
+                    <h3>${sanitizeHTML(exp.company)}</h3>
+                    <span class="role">${sanitizeHTML(exp.role)}</span>
                 </div>
-                <span class="date">${exp.startDate} - ${exp.endDate}</span>
+                <span class="date">${sanitizeHTML(exp.startDate)} - ${sanitizeHTML(exp.endDate)}</span>
             </div>
             <ul class="achievements">
-                ${exp.achievements.map(ach => `<li>${ach}</li>`).join('')}
+                ${exp.achievements.map(ach => `<li>${sanitizeHTML(ach)}</li>`).join('')}
             </ul>
         </div>
     `).join('');
@@ -139,12 +154,12 @@ function renderEducation(education) {
                 <i class="fas fa-graduation-cap"></i>
             </div>
             <div class="edu-content">
-                <h3>${edu.degree}</h3>
-                <p class="institution">${edu.institution}</p>
-                <p class="grad-date">Graduated: ${edu.graduationDate}</p>
-                ${edu.gpa ? `<p class="gpa">GPA: ${edu.gpa}/4.0</p>` : ''}
+                <h3>${sanitizeHTML(edu.degree)}</h3>
+                <p class="institution">${sanitizeHTML(edu.institution)}</p>
+                <p class="grad-date">Graduated: ${sanitizeHTML(edu.graduationDate)}</p>
+                ${edu.gpa ? `<p class="gpa">GPA: ${sanitizeHTML(edu.gpa)}/4.0</p>` : ''}
                 ${edu.file ? `
-                <a href="${edu.file}" target="_blank" class="view-file-btn">
+                <a href="${sanitizeURL(edu.file)}" target="_blank" rel="noopener noreferrer" class="view-file-btn">
                     <i class="fas fa-eye"></i> View Degree
                 </a>` : ''}
             </div>
@@ -162,7 +177,7 @@ function renderSkills(technicalSkills, softSkills) {
             ${technicalSkills.map(skill => `
                 <div class="skill-item">
                     <div class="skill-info">
-                        <span>${skill.name}</span>
+                        <span>${sanitizeHTML(skill.name)}</span>
                         <span>${skill.level}%</span>
                     </div>
                     <div class="skill-bar">
@@ -179,7 +194,7 @@ function renderSkills(technicalSkills, softSkills) {
             ${softSkills.map(skill => `
                 <div class="skill-item">
                     <div class="skill-info">
-                        <span>${skill.name}</span>
+                        <span>${sanitizeHTML(skill.name)}</span>
                         <span>${skill.level}%</span>
                     </div>
                     <div class="skill-bar">
@@ -200,17 +215,17 @@ function renderProjects(projects) {
     container.innerHTML = projects.map(proj => `
         <div class="project-card">
             <div class="project-image">
-                <div class="project-placeholder">${proj.name}</div>
+                <div class="project-placeholder">${sanitizeHTML(proj.name)}</div>
             </div>
             <div class="project-content">
-                <h3>${proj.name}</h3>
-                <p>${proj.description}</p>
+                <h3>${sanitizeHTML(proj.name)}</h3>
+                <p>${sanitizeHTML(proj.description)}</p>
                 <div class="project-tech">
-                    ${proj.technologies.map(tech => `<span>${tech}</span>`).join('')}
+                    ${proj.technologies.map(tech => `<span>${sanitizeHTML(tech)}</span>`).join('')}
                 </div>
                 <div class="project-links">
-                    ${proj.demoUrl ? `<a href="${proj.demoUrl}" class="btn-small">View Demo</a>` : ''}
-                    ${proj.codeUrl ? `<a href="${proj.codeUrl}" class="btn-small btn-outline">Source Code</a>` : ''}
+                    ${proj.demoUrl ? `<a href="${sanitizeURL(proj.demoUrl)}" target="_blank" rel="noopener noreferrer" class="btn-small">View Demo</a>` : ''}
+                    ${proj.codeUrl ? `<a href="${sanitizeURL(proj.codeUrl)}" target="_blank" rel="noopener noreferrer" class="btn-small btn-outline">Source Code</a>` : ''}
                 </div>
             </div>
         </div>
@@ -224,11 +239,11 @@ function renderCertifications(certifications) {
     container.innerHTML = certifications.map(cert => `
         <div class="cert-card">
             <i class="fas fa-certificate"></i>
-            <h3>${cert.name}</h3>
-            <p>${cert.organization}</p>
-            <span class="cert-date">${cert.year}</span>
+            <h3>${sanitizeHTML(cert.name)}</h3>
+            <p>${sanitizeHTML(cert.organization)}</p>
+            <span class="cert-date">${sanitizeHTML(cert.year)}</span>
             ${cert.file ? `
-            <a href="${cert.file}" target="_blank" class="view-cert-btn">
+            <a href="${sanitizeURL(cert.file)}" target="_blank" rel="noopener noreferrer" class="view-cert-btn">
                 <i class="fas fa-eye"></i> View Certificate
             </a>` : ''}
         </div>
@@ -245,11 +260,11 @@ function renderAwards(awards) {
                 <i class="fas fa-trophy"></i>
             </div>
             <div class="award-content">
-                <h3>${award.name}</h3>
-                <p>${award.organization}</p>
-                <span class="award-year">${award.year}</span>
+                <h3>${sanitizeHTML(award.name)}</h3>
+                <p>${sanitizeHTML(award.organization)}</p>
+                <span class="award-year">${sanitizeHTML(award.year)}</span>
                 ${award.file ? `
-                <a href="${award.file}" target="_blank" class="view-file-btn">
+                <a href="${sanitizeURL(award.file)}" target="_blank" rel="noopener noreferrer" class="view-file-btn">
                     <i class="fas fa-eye"></i> View Award
                 </a>` : ''}
             </div>
@@ -324,6 +339,8 @@ const navLinks = document.querySelector('.nav-links');
 hamburger.addEventListener('click', () => {
     hamburger.classList.toggle('active');
     navLinks.classList.toggle('active');
+    const isExpanded = hamburger.classList.contains('active');
+    hamburger.setAttribute('aria-expanded', isExpanded);
 });
 
 // Close mobile menu when clicking a link
@@ -446,6 +463,7 @@ window.addEventListener('scroll', () => {
 const scrollTopBtn = document.createElement('button');
 scrollTopBtn.innerHTML = '↑';
 scrollTopBtn.className = 'scroll-top-btn';
+scrollTopBtn.setAttribute('aria-label', 'Scroll to top of page');
 scrollTopBtn.style.cssText = `
     position: fixed;
     bottom: 30px;
@@ -588,5 +606,3 @@ window.addEventListener('click', (e) => {
 });
 
 
-console.log('🚀 CV Website loaded successfully!');
-console.log('✨ All animations and interactivity initialized');
