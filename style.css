@@ -2755,3 +2755,325 @@ body.printing .experience-card::before {
         color: #000 !important;
     }
 }
+
+/* ===== PRINT PREVIEW MODAL CONTENT STYLES ===== */
+
+/* Print Preview Modal Content */
+#print-preview-content {
+    background: white;
+    color: black;
+    padding: 40px;
+    max-width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 11pt;
+    line-height: 1.5;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Print Resume Styles */
+.print-resume {
+    width: 100%;
+    max-width: 180mm;
+    margin: 0 auto;
+    color: #000;
+    background: white;
+}
+
+/* Print Header */
+.print-header {
+    text-align: center;
+    border-bottom: 2px solid #000;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.print-header h1 {
+    font-size: 24pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0 0 8px 0;
+    color: #000;
+    font-family: 'Arial', 'Helvetica', sans-serif;
+}
+
+.print-title {
+    font-size: 14pt;
+    font-weight: 500;
+    color: #444;
+    margin: 0 0 12px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.print-contact {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    font-size: 9.5pt;
+    color: #333;
+}
+
+.print-contact-item {
+    color: #333;
+}
+
+.print-separator {
+    color: #999;
+    margin: 0 4px;
+}
+
+/* Print Sections */
+.print-section {
+    margin-bottom: 18px;
+    page-break-inside: avoid;
+}
+
+.print-section-title {
+    font-size: 12pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #000;
+    padding-bottom: 4px;
+    margin-bottom: 10px;
+    color: #000;
+    font-family: 'Arial', 'Helvetica', sans-serif;
+}
+
+/* Summary */
+.print-summary {
+    font-size: 10.5pt;
+    line-height: 1.5;
+    color: #333;
+    text-align: left;
+    margin: 0;
+}
+
+/* Experience */
+.print-experience-item {
+    margin-bottom: 12px;
+    page-break-inside: avoid;
+}
+
+.print-experience-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+}
+
+.print-job-title {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #000;
+    margin: 0;
+}
+
+.print-company {
+    font-size: 10pt;
+    font-style: italic;
+    color: #444;
+    display: block;
+}
+
+.print-date {
+    font-size: 9.5pt;
+    color: #666;
+    font-style: italic;
+    white-space: nowrap;
+}
+
+.print-achievements {
+    margin: 6px 0 0 0;
+    padding-left: 0;
+    list-style: none;
+}
+
+.print-achievements li {
+    font-size: 10pt;
+    color: #333;
+    margin-bottom: 2px;
+    padding-left: 12px;
+    position: relative;
+    line-height: 1.4;
+}
+
+.print-achievements li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #000;
+    font-weight: bold;
+}
+
+/* Education */
+.print-education-item {
+    margin-bottom: 10px;
+    page-break-inside: avoid;
+}
+
+.print-education-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2px;
+}
+
+.print-degree {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #000;
+    margin: 0;
+}
+
+.print-institution {
+    font-size: 10pt;
+    font-style: italic;
+    color: #444;
+    display: block;
+}
+
+.print-gpa {
+    font-size: 9.5pt;
+    color: #666;
+}
+
+/* Skills */
+.print-skill-category {
+    margin-bottom: 6px;
+}
+
+.print-skill-label {
+    font-size: 10pt;
+    font-weight: 600;
+    color: #000;
+}
+
+.print-skill-list {
+    font-size: 10pt;
+    color: #333;
+}
+
+/* Projects */
+.print-project-item {
+    margin-bottom: 10px;
+    page-break-inside: avoid;
+}
+
+.print-project-name {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #000;
+    margin: 0 0 2px 0;
+}
+
+.print-project-desc {
+    font-size: 9.5pt;
+    color: #444;
+    margin: 0 0 2px 0;
+    line-height: 1.4;
+}
+
+.print-project-tech {
+    font-size: 9pt;
+    font-style: italic;
+    color: #666;
+}
+
+/* Certifications */
+.print-cert-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+}
+
+.print-cert-item {
+    font-size: 10pt;
+}
+
+.print-cert-name {
+    font-weight: 600;
+    color: #000;
+}
+
+.print-cert-org {
+    color: #444;
+}
+
+.print-cert-org::before {
+    content: ' — ';
+    color: #999;
+}
+
+.print-cert-year {
+    color: #666;
+    font-size: 9.5pt;
+    margin-left: 8px;
+}
+
+/* Awards */
+.print-award-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+}
+
+.print-award-item {
+    font-size: 10pt;
+}
+
+.print-award-name {
+    font-weight: 600;
+    color: #000;
+}
+
+.print-award-org {
+    color: #444;
+}
+
+.print-award-org::before {
+    content: ' — ';
+    color: #999;
+}
+
+.print-award-year {
+    color: #666;
+    font-size: 9.5pt;
+    margin-left: 8px;
+}
+
+/* Modal Body adjustments for print preview */
+.modal-body {
+    background: #f5f5f5;
+    padding: 30px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #print-preview-content {
+        padding: 20px;
+        font-size: 10pt;
+    }
+    
+    .print-header h1 {
+        font-size: 20pt;
+    }
+    
+    .print-title {
+        font-size: 12pt;
+    }
+    
+    .print-experience-header,
+    .print-education-header {
+        flex-direction: column;
+        gap: 2px;
+    }
+    
+    .print-date {
+        white-space: normal;
+    }
+}

@@ -514,15 +514,18 @@
     <div id="print-preview-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Print Preview</h2>
+                <h2>📄 Print Preview</h2>
                 <button class="close-modal">&times;</button>
             </div>
             <div class="modal-body">
-                <iframe id="pdf-preview-frame" style="width: 100%; height: 100%; border: none;"></iframe>
+                <!-- Print-friendly content renders here -->
+                <div id="print-preview-content"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary close-modal-btn">Cancel</button>
-                <button id="save-pdf-btn" class="btn btn-primary">Save PDF</button>
+                <button id="save-pdf-btn" class="btn btn-primary">
+                    <i class="fas fa-download"></i> Save PDF
+                </button>
             </div>
         </div>
     </div>
@@ -533,12 +536,7 @@
     -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="script.js"></script>
-    <script>
-        function openPrintPreview(event) {
-            event.preventDefault();
-            window.open('print-preview.html', '_blank');
-        }
-    </script>
+
 </body>
 
 </html>

@@ -517,107 +517,553 @@ const modal = document.getElementById('print-preview-modal');
 const closeBtn = document.querySelector('.close-modal');
 const cancelBtn = document.querySelector('.close-modal-btn');
 const saveBtn = document.getElementById('save-pdf-btn');
-const previewFrame = document.getElementById('pdf-preview-frame');
 
-// Store the generated PDF object to save later
-let generatedPdf = null;
+// ===== PRINT PREVIEW CONTENT GENERATION =====
 
 /**
- * Opens the print preview with optimized PDF generation
- * Uses professional ATS-friendly settings
+ * Extracts all CV data from the DOM and localStorage
+ * @returns {Object} Structured CV data object
  */
-function openPrintPreview() {
-    // 1. Add printing class to body to transform layout
-    document.body.classList.add('printing');
+function extractCVData() {
+    const data = {
+        personal: {},
+        contact: {},
+        summary: '',
+        experience: [],
+        education: [],
+        skills: { technical: [], soft: [] },
+        projects: [],
+        certifications: [],
+        awards: []
+    };
 
-    // UI Feedback
-    const btn = document.querySelector('.hero-buttons .btn-secondary'); // "Download CV" button
-    const originalText = btn.textContent;
-    btn.textContent = 'Preparing Preview...';
-    btn.disabled = true;
-
-    // 2. Wait for CSS to apply (small delay)
-    setTimeout(() => {
-        // 3. Generate PDF Blob with professional settings
-        const opt = {
-            margin: [15, 15, 15, 15], // 15mm margins on all sides (A4 standard)
-            filename: 'resume.pdf',
-            image: { 
-                type: 'jpeg', 
-                quality: 0.95 
-            },
-            html2canvas: {
-                scale: 2,              // High resolution for crisp text
-                useCORS: true,         // Allow cross-origin images
-                logging: false,        // Disable logging for production
-                scrollY: 0,            // Capture from top
-                backgroundColor: '#FFFFFF', // Ensure white background
-                windowWidth: 794,      // A4 width in pixels at 96 DPI
-                windowHeight: 1123     // A4 height in pixels at 96 DPI
-            },
-            jsPDF: {
-                unit: 'mm',
-                format: 'a4',
-                orientation: 'portrait',
-                compress: true         // Compress PDF for smaller file size
-            },
-            pagebreak: { 
-                mode: ['css', 'legacy'],
-                before: ['.section-header'],  // Avoid breaking before headers
-                avoid: ['.experience-card', '.education-card', '.project-card', '.cert-card', '.award-card']
+    // Try to get data from localStorage first (most up-to-date)
+    const savedData = localStorage.getItem('cvData');
+    if (savedData) {
+        try {
+            const cvData = JSON.parse(savedData);
+            
+            // Personal info
+            if (cvData.personal) {
+                data.personal = {
+                    name: cvData.personal.fullName || 'Your Name',
+                    title: cvData.personal.jobTitle || 'Job Title',
+                    location: cvData.personal.location || ''
+                };
             }
-        };
+            
+            // Contact info
+            if (cvData.contact) {
+                data.contact = {
+                    phone: cvData.contact.phone || '',
+                    email: cvData.contact.email || '',
+                    linkedin: cvData.contact.linkedin || '',
+                    github: cvData.contact.github || ''
+                };
+            }
+            
+            // Summary
+            if (cvData.summary) {
+                data.summary = cvData.summary;
+            }
+            
+            // Experience
+            if (cvData.experience && Array.isArray(cvData.experience)) {
+                data.experience = cvData.experience.map(exp => ({
+                    company: exp.company || '',
+                    role: exp.role || '',
+                    startDate: exp.startDate || '',
+                    endDate: exp.endDate || '',
+                    achievements: Array.isArray(exp.achievements) ? exp.achievements : []
+                }));
+            }
+            
+            // Education
+            if (cvData.education && Array.isArray(cvData.education)) {
+                data.education = cvData.education.map(edu => ({
+                    degree: edu.degree || '',
+                    institution: edu.institution || '',
+                    graduationDate: edu.graduationDate || '',
+                    gpa: edu.gpa || ''
+                }));
+            }
+            
+            // Skills
+            if (cvData.technicalSkills && Array.isArray(cvData.technicalSkills)) {
+                data.skills.technical = cvData.technicalSkills;
+            }
+            if (cvData.softSkills && Array.isArray(cvData.softSkills)) {
+                data.skills.soft = cvData.softSkills;
+            }
+            
+            // Projects
+            if (cvData.projects && Array.isArray(cvData.projects)) {
+                data.projects = cvData.projects.map(proj => ({
+                    name: proj.name || '',
+                    description: proj.description || '',
+                    technologies: Array.isArray(proj.technologies) ? proj.technologies : []
+                }));
+            }
+            
+            // Certifications
+            if (cvData.certifications && Array.isArray(cvData.certifications)) {
+                data.certifications = cvData.certifications.map(cert => ({
+                    name: cert.name || '',
+                    organization: cert.organization || '',
+                    year: cert.year || ''
+                }));
+            }
+            
+            // Awards
+            if (cvData.awards && Array.isArray(cvData.awards)) {
+                data.awards = cvData.awards.map(award => ({
+                    name: award.name || '',
+                    organization: award.organization || '',
+                    year: award.year || ''
+                }));
+            }
+            
+            return data;
+        } catch (e) {
+            console.error('Error parsing CV data from localStorage:', e);
+        }
+    }
+    
+    // Fallback: Extract from DOM
+    return extractCVDataFromDOM();
+}
 
-        // Generate the PDF worker
-        const worker = html2pdf().set(opt).from(document.body).toPdf();
-
-        worker.get('pdf').then(function (pdfObject) {
-            // 4. Capture Blob
-            generatedPdf = pdfObject; // Store for saving later
-            const blob = pdfObject.output('blob');
-            const blobUrl = URL.createObjectURL(blob);
-
-            // 5. Reset State
-            document.body.classList.remove('printing');
-            btn.textContent = originalText;
-            btn.disabled = false;
-
-            // 6. Show Preview
-            previewFrame.src = blobUrl;
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
-
-            // Setup Save Button
-            saveBtn.onclick = function () {
-                // Trigger download with professional filename
-                const fullName = document.querySelector('.hero-text h1')?.textContent?.replace(/\s+/g, '_') || 'resume';
-                pdfObject.save(`${fullName}_Resume.pdf`);
-                closePrintModal();
-            };
-
-        }).catch(err => {
-            console.error('PDF generation error:', err);
-            document.body.classList.remove('printing');
-            btn.textContent = originalText;
-            btn.disabled = false;
-            alert('Error generating preview. Please try again.');
+/**
+ * Extracts CV data from the DOM when localStorage is not available
+ * @returns {Object} Structured CV data object
+ */
+function extractCVDataFromDOM() {
+    const data = {
+        personal: {},
+        contact: {},
+        summary: '',
+        experience: [],
+        education: [],
+        skills: { technical: [], soft: [] },
+        projects: [],
+        certifications: [],
+        awards: []
+    };
+    
+    // Personal info from hero section
+    const nameEl = document.querySelector('.hero-text h1');
+    const titleEl = document.querySelector('.tagline');
+    const locationEl = document.querySelector('.location');
+    
+    data.personal = {
+        name: nameEl ? nameEl.textContent.trim() : 'Your Name',
+        title: titleEl ? titleEl.textContent.trim() : 'Job Title',
+        location: locationEl ? locationEl.textContent.replace('📍', '').trim() : ''
+    };
+    
+    // Contact info
+    document.querySelectorAll('.contact-item').forEach(item => {
+        const icon = item.querySelector('i');
+        const span = item.querySelector('span');
+        const text = span ? span.textContent.trim() : '';
+        
+        if (icon.classList.contains('fa-phone')) data.contact.phone = text;
+        else if (icon.classList.contains('fa-envelope')) data.contact.email = text;
+        else if (icon.classList.contains('fa-linkedin')) data.contact.linkedin = text;
+        else if (icon.classList.contains('fa-github')) data.contact.github = text;
+    });
+    
+    // Summary
+    const summaryEl = document.querySelector('.summary-text');
+    data.summary = summaryEl ? summaryEl.textContent.trim() : '';
+    
+    // Experience
+    document.querySelectorAll('.experience-card').forEach(card => {
+        const company = card.querySelector('.company-info h3');
+        const role = card.querySelector('.role');
+        const date = card.querySelector('.date');
+        const achievements = [];
+        
+        card.querySelectorAll('.achievements li').forEach(li => {
+            achievements.push(li.textContent.trim());
         });
-
-    }, 100);
+        
+        data.experience.push({
+            company: company ? company.textContent.trim() : '',
+            role: role ? role.textContent.trim() : '',
+            startDate: date ? date.textContent.split('-')[0].trim() : '',
+            endDate: date ? date.textContent.split('-')[1]?.trim() || 'Present' : '',
+            achievements: achievements
+        });
+    });
+    
+    // Education
+    document.querySelectorAll('.education-card').forEach(card => {
+        const degree = card.querySelector('.edu-content h3');
+        const institution = card.querySelector('.institution');
+        const gradDate = card.querySelector('.grad-date');
+        const gpa = card.querySelector('.gpa');
+        
+        data.education.push({
+            degree: degree ? degree.textContent.trim() : '',
+            institution: institution ? institution.textContent.trim() : '',
+            graduationDate: gradDate ? gradDate.textContent.replace('Graduated:', '').trim() : '',
+            gpa: gpa ? gpa.textContent.replace('GPA:', '').trim() : ''
+        });
+    });
+    
+    // Skills
+    const skillCategories = document.querySelectorAll('.skill-category');
+    skillCategories.forEach(cat => {
+        const catTitle = cat.querySelector('h3');
+        const isTechnical = catTitle && catTitle.textContent.includes('Technical');
+        
+        cat.querySelectorAll('.skill-item').forEach(item => {
+            const name = item.querySelector('.skill-info span:first-child');
+            const level = item.querySelector('.skill-info span:last-child');
+            
+            const skill = {
+                name: name ? name.textContent.trim() : '',
+                level: level ? level.textContent.trim() : ''
+            };
+            
+            if (isTechnical) {
+                data.skills.technical.push(skill);
+            } else {
+                data.skills.soft.push(skill);
+            }
+        });
+    });
+    
+    // Projects
+    document.querySelectorAll('.project-card').forEach(card => {
+        const name = card.querySelector('.project-content h3');
+        const description = card.querySelector('.project-content p');
+        const techs = [];
+        
+        card.querySelectorAll('.project-tech span').forEach(span => {
+            techs.push(span.textContent.trim());
+        });
+        
+        data.projects.push({
+            name: name ? name.textContent.trim() : '',
+            description: description ? description.textContent.trim() : '',
+            technologies: techs
+        });
+    });
+    
+    // Certifications
+    document.querySelectorAll('.cert-card').forEach(card => {
+        const name = card.querySelector('h3');
+        const org = card.querySelector('p');
+        const year = card.querySelector('.cert-date');
+        
+        data.certifications.push({
+            name: name ? name.textContent.trim() : '',
+            organization: org ? org.textContent.trim() : '',
+            year: year ? year.textContent.trim() : ''
+        });
+    });
+    
+    // Awards
+    document.querySelectorAll('.award-card').forEach(card => {
+        const name = card.querySelector('.award-content h3');
+        const org = card.querySelector('.award-content p');
+        const year = card.querySelector('.award-year');
+        
+        data.awards.push({
+            name: name ? name.textContent.trim() : '',
+            organization: org ? org.textContent.trim() : '',
+            year: year ? year.textContent.trim() : ''
+        });
+    });
+    
+    return data;
 }
 
-function closePrintModal() {
-    modal.classList.remove('show');
-    document.body.style.overflow = 'auto';
-    // Clear iframe to free memory
-    previewFrame.src = '';
+/**
+ * Creates clean, print-friendly HTML from CV data
+ * @param {Object} data - The CV data object
+ * @returns {string} Clean HTML string for printing
+ */
+function createPrintHTML(data) {
+    const formatContact = (value, prefix = '') => {
+        if (!value) return '';
+        return value.replace(prefix, '').trim();
+    };
+    
+    // Generate contact line
+    const contactItems = [];
+    if (data.contact.email) contactItems.push(`<span class="print-contact-item">${sanitizeHTML(data.contact.email)}</span>`);
+    if (data.contact.phone) contactItems.push(`<span class="print-contact-item">${sanitizeHTML(data.contact.phone)}</span>`);
+    if (data.contact.linkedin) contactItems.push(`<span class="print-contact-item">${sanitizeHTML(formatContact(data.contact.linkedin, 'linkedin.com/'))}</span>`);
+    if (data.contact.github) contactItems.push(`<span class="print-contact-item">${sanitizeHTML(formatContact(data.contact.github, 'github.com/'))}</span>`);
+    
+    // Generate experience HTML
+    const experienceHTML = data.experience.length > 0 
+        ? data.experience.map(exp => `
+            <div class="print-experience-item">
+                <div class="print-experience-header">
+                    <div>
+                        <h3 class="print-job-title">${sanitizeHTML(exp.role)}</h3>
+                        <span class="print-company">${sanitizeHTML(exp.company)}</span>
+                    </div>
+                    <span class="print-date">${sanitizeHTML(exp.startDate)} - ${sanitizeHTML(exp.endDate)}</span>
+                </div>
+                ${exp.achievements.length > 0 ? `
+                    <ul class="print-achievements">
+                        ${exp.achievements.map(ach => `<li>${sanitizeHTML(ach)}</li>`).join('')}
+                    </ul>
+                ` : ''}
+            </div>
+        `).join('')
+        : '';
+    
+    // Generate education HTML
+    const educationHTML = data.education.length > 0
+        ? data.education.map(edu => `
+            <div class="print-education-item">
+                <div class="print-education-header">
+                    <div>
+                        <h3 class="print-degree">${sanitizeHTML(edu.degree)}</h3>
+                        <span class="print-institution">${sanitizeHTML(edu.institution)}</span>
+                    </div>
+                    <span class="print-date">${sanitizeHTML(edu.graduationDate)}</span>
+                </div>
+                ${edu.gpa ? `<span class="print-gpa">GPA: ${sanitizeHTML(edu.gpa)}</span>` : ''}
+            </div>
+        `).join('')
+        : '';
+    
+    // Generate skills HTML
+    const skillsHTML = (skills) => {
+        if (!skills || skills.length === 0) return '';
+        return skills.map(skill => {
+            if (typeof skill === 'string') return sanitizeHTML(skill);
+            return `${sanitizeHTML(skill.name)}${skill.level ? ` (${sanitizeHTML(skill.level)})` : ''}`;
+        }).join(' • ');
+    };
+    
+    // Generate projects HTML
+    const projectsHTML = data.projects.length > 0
+        ? data.projects.map(proj => `
+            <div class="print-project-item">
+                <h3 class="print-project-name">${sanitizeHTML(proj.name)}</h3>
+                <p class="print-project-desc">${sanitizeHTML(proj.description)}</p>
+                ${proj.technologies.length > 0 ? `
+                    <span class="print-project-tech">${proj.technologies.map(t => sanitizeHTML(t)).join(', ')}</span>
+                ` : ''}
+            </div>
+        `).join('')
+        : '';
+    
+    // Generate certifications HTML
+    const certificationsHTML = data.certifications.length > 0
+        ? data.certifications.map(cert => `
+            <div class="print-cert-item">
+                <span class="print-cert-name">${sanitizeHTML(cert.name)}</span>
+                <span class="print-cert-org">${sanitizeHTML(cert.organization)}</span>
+                <span class="print-cert-year">${sanitizeHTML(cert.year)}</span>
+            </div>
+        `).join('')
+        : '';
+    
+    // Generate awards HTML
+    const awardsHTML = data.awards.length > 0
+        ? data.awards.map(award => `
+            <div class="print-award-item">
+                <span class="print-award-name">${sanitizeHTML(award.name)}</span>
+                <span class="print-award-org">${sanitizeHTML(award.organization)}</span>
+                <span class="print-award-year">${sanitizeHTML(award.year)}</span>
+            </div>
+        `).join('')
+        : '';
+    
+    // Build full HTML
+    return `
+        <div class="print-resume">
+            <!-- Header -->
+            <header class="print-header">
+                <h1>${sanitizeHTML(data.personal.name)}</h1>
+                <p class="print-title">${sanitizeHTML(data.personal.title)}</p>
+                ${contactItems.length > 0 ? `
+                    <div class="print-contact">
+                        ${contactItems.join(' <span class="print-separator">|</span> ')}
+                    </div>
+                ` : ''}
+            </header>
+            
+            <!-- Summary -->
+            ${data.summary ? `
+                <section class="print-section">
+                    <h2 class="print-section-title">Professional Summary</h2>
+                    <p class="print-summary">${sanitizeHTML(data.summary)}</p>
+                </section>
+            ` : ''}
+            
+            <!-- Experience -->
+            ${experienceHTML ? `
+                <section class="print-section">
+                    <h2 class="print-section-title">Work Experience</h2>
+                    ${experienceHTML}
+                </section>
+            ` : ''}
+            
+            <!-- Education -->
+            ${educationHTML ? `
+                <section class="print-section">
+                    <h2 class="print-section-title">Education</h2>
+                    ${educationHTML}
+                </section>
+            ` : ''}
+            
+            <!-- Skills -->
+            ${(data.skills.technical.length > 0 || data.skills.soft.length > 0) ? `
+                <section class="print-section">
+                    <h2 class="print-section-title">Skills</h2>
+                    ${data.skills.technical.length > 0 ? `
+                        <div class="print-skill-category">
+                            <span class="print-skill-label">Technical:</span>
+                            <span class="print-skill-list">${skillsHTML(data.skills.technical)}</span>
+                        </div>
+                    ` : ''}
+                    ${data.skills.soft.length > 0 ? `
+                        <div class="print-skill-category">
+                            <span class="print-skill-label">Soft Skills:</span>
+                            <span class="print-skill-list">${skillsHTML(data.skills.soft)}</span>
+                        </div>
+                    ` : ''}
+                </section>
+            ` : ''}
+            
+            <!-- Projects -->
+            ${projectsHTML ? `
+                <section class="print-section">
+                    <h2 class="print-section-title">Projects</h2>
+                    ${projectsHTML}
+                </section>
+            ` : ''}
+            
+            <!-- Certifications -->
+            ${certificationsHTML ? `
+                <section class="print-section">
+                    <h2 class="print-section-title">Certifications</h2>
+                    <div class="print-cert-list">
+                        ${certificationsHTML}
+                    </div>
+                </section>
+            ` : ''}
+            
+            <!-- Awards -->
+            ${awardsHTML ? `
+                <section class="print-section">
+                    <h2 class="print-section-title">Awards & Achievements</h2>
+                    <div class="print-award-list">
+                        ${awardsHTML}
+                    </div>
+                </section>
+            ` : ''}
+        </div>
+    `;
 }
 
-// Event Listeners for Modal
-if (closeBtn) closeBtn.addEventListener('click', closePrintModal);
-if (cancelBtn) cancelBtn.addEventListener('click', closePrintModal);
-window.addEventListener('click', (e) => {
-    if (e.target === modal) closePrintModal();
-});
+/**
+ * Generates print-friendly content from current CV
+ * @returns {string} HTML string ready for print preview
+ */
+function generatePrintFriendlyContent() {
+    // 1. Extract all data from current CV
+    const cvData = extractCVData();
+    
+    // 2. Generate clean HTML structure for print
+    const printHTML = createPrintHTML(cvData);
+    
+    // 3. Return the HTML
+    return printHTML;
+}
+
+/**
+ * Saves the print preview content as PDF
+ * @param {HTMLElement} element - The element to convert to PDF
+ */
+function saveAsPDF(element) {
+    const fullName = document.querySelector('.hero-text h1')?.textContent?.trim() || 'Resume';
+    const safeFilename = fullName.replace(/[^a-zA-Z0-9]/g, '_');
+    
+    const opt = {
+        margin: [15, 15, 15, 15],
+        filename: `${safeFilename}_Resume.pdf`,
+        image: { 
+            type: 'jpeg', 
+            quality: 0.98 
+        },
+        html2canvas: { 
+            scale: 2,
+            useCORS: true,
+            scrollY: 0,
+            backgroundColor: '#FFFFFF',
+            logging: false
+        },
+        jsPDF: { 
+            unit: 'mm', 
+            format: 'a4', 
+            orientation: 'portrait',
+            compress: true
+        },
+        pagebreak: { 
+            mode: ['css', 'legacy'],
+            before: ['.print-section-title'],
+            avoid: ['.print-experience-item', '.print-education-item', '.print-project-item']
+        }
+    };
+    
+    // Show loading state on button
+    const saveBtn = document.getElementById('save-pdf-btn');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+    saveBtn.disabled = true;
+    
+    html2pdf().set(opt).from(element).save().then(() => {
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+    }).catch(err => {
+        console.error('PDF generation error:', err);
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+        alert('Error generating PDF. Please try again.');
+    });
+}
+
+/**
+ * Updated function to open print preview modal
+ * @param {Event} event - Click event
+ */
+function openPrintPreview(event) {
+    if (event) event.preventDefault();
+    
+    const modal = document.getElementById('print-preview-modal');
+    const previewContainer = document.getElementById('print-preview-content');
+    const saveBtn = document.getElementById('save-pdf-btn');
+    
+    if (!modal || !previewContainer) {
+        console.error('Modal elements not found');
+        return;
+    }
+    
+    // 1. Generate print-friendly content
+    const printContent = generatePrintFriendlyContent();
+    
+    // 2. Insert into preview container
+    previewContainer.innerHTML = printContent;
+    
+    // 3. Show modal
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    
+    // 4. Setup PDF save button
+    saveBtn.onclick = function() {
+        saveAsPDF(previewContainer);
+    };
+}
 
 
