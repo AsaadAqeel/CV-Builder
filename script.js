@@ -4,7 +4,12 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function loadCVData() {
-    const savedData = localStorage.getItem('cvData');
+    let savedData = null;
+    if (typeof window !== 'undefined' && window.EXPORTED_CV_DATA) {
+        savedData = JSON.stringify(window.EXPORTED_CV_DATA);
+    } else {
+        savedData = localStorage.getItem('cvData');
+    }
     if (savedData) {
         const cvData = JSON.parse(savedData);
 

@@ -1087,3 +1087,55 @@ function calculateStrength() {
 
     if (text) text.textContent = percentage + '%';
 }
+
+// ===== EXPORT STATIC WEBSITE =====
+async function exportStaticWebsite() {
+    try {
+        const btn = document.querySelector('.btn-secondary[onclick="exportStaticWebsite()"]');
+        let originalText = '';
+        if (btn) {
+            originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+            btn.disabled = true;
+        }
+
+        const zip = new JSZip();
+
+        // 1. Fetch files
+        const indexHtml = await fetch('index.html').then(res => res.text());
+        const styleCss = await fetch('style.css').then(res => res.text());
+        const scriptJs = await fetch('script.js').then(res => res.text());
+
+        // 2. Inject cvData into index.html
+        const dataScript = `<script>window.EXPORTED_CV_DATA = ${JSON.stringify(cvData)};</script>\n`;
+        let modifiedIndexHtml = indexHtml.replace('</head>', dataScript + '</head>');
+
+        // Remove the "Edit CV" button
+        modifiedIndexHtml = modifiedIndexHtml.replace(/<a[^>]*href=["']dashboard\.html["'][^>]*>Edit CV<\/a>/i, '');
+
+        // 3. Add to zip
+        zip.file('index.html', modifiedIndexHtml);
+        zip.file('style.css', styleCss);
+        zip.file('script.js', scriptJs);
+
+        // 4. Generate and download zip
+        const content = await zip.generateAsync({ type: 'blob' });
+        saveAs(content, 'CV_Static_Website.zip');
+
+        // Reset button
+        if (btn) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+
+        alert('Static website exported successfully! Unzip the downloaded file and open index.html.');
+    } catch (error) {
+        console.error('Error exporting static website:', error);
+        alert('Failed to export static website. If you are opening this file locally (file://), try using a local server or GitHub Pages.');
+        const btn = document.querySelector('.btn-secondary[onclick="exportStaticWebsite()"]');
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-file-export"></i> Export Static Website';
+            btn.disabled = false;
+        }
+    }
+}
