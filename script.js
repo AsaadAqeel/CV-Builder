@@ -987,22 +987,41 @@ function generatePrintFriendlyContent() {
  * @param {HTMLElement} element - The element to convert to PDF
  */
 function saveAsPDF(element) {
+    console.log('=== PDF Generation Started ===');
+    console.log('Element:', element);
+    console.log('Element dimensions:', element.offsetWidth, 'x', element.offsetHeight);
+    
     const fullName = document.querySelector('.hero-text h1')?.textContent?.trim() || 'Resume';
     const safeFilename = fullName.replace(/[^a-zA-Z0-9]/g, '_');
     
+    // Ensure element is visible and properly sized before generating
+    const originalWidth = element.style.width;
+    element.style.width = '210mm';
+    
     const opt = {
-        margin: [15, 15, 15, 15],
+        margin: [10, 10, 10, 10],
         filename: `${safeFilename}_Resume.pdf`,
         image: { 
             type: 'jpeg', 
-            quality: 0.98 
+            quality: 0.95 
         },
         html2canvas: { 
             scale: 2,
             useCORS: true,
             scrollY: 0,
+            scrollX: 0,
             backgroundColor: '#FFFFFF',
-            logging: false
+            logging: true,
+            windowWidth: 794,  // A4 width in pixels at 96 DPI
+            onclone: function(clonedDoc) {
+                console.log('Document cloned for PDF');
+                // Ensure cloned document has proper sizing
+                const clonedElement = clonedDoc.getElementById('print-preview-content');
+                if (clonedElement) {
+                    clonedElement.style.width = '210mm';
+                    clonedElement.style.minHeight = '297mm';
+                }
+            }
         },
         jsPDF: { 
             unit: 'mm', 
@@ -1023,15 +1042,55 @@ function saveAsPDF(element) {
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
     saveBtn.disabled = true;
     
-    html2pdf().set(opt).from(element).save().then(() => {
+    html2pdf().set(opt).from(element).toPdf().get('pdf').then(function(pdf) {
+        console.log('PDF generated successfully');
+        console.log('PDF pages:', pdf.internal.getNumberOfPages());
+        
+        // Restore original width
+        element.style.width = originalWidth;
+        
+        // Save the PDF
+        pdf.save(`${safeFilename}_Resume.pdf`);
+        
         saveBtn.innerHTML = originalText;
         saveBtn.disabled = false;
+        
+        console.log('=== PDF Generation Complete ===');
     }).catch(err => {
         console.error('PDF generation error:', err);
+        element.style.width = originalWidth;
         saveBtn.innerHTML = originalText;
         saveBtn.disabled = false;
-        alert('Error generating PDF. Please try again.');
+        alert('Error generating PDF. Check console for details.');
     });
+}
+
+/**
+ * Debug function to check PDF readiness
+ */
+function debugPDF() {
+    console.log('=== PDF DEBUG INFO ===');
+    console.log('Window width:', window.innerWidth);
+    console.log('Window height:', window.innerHeight);
+    console.log('Device pixel ratio:', window.devicePixelRatio);
+    
+    const previewContainer = document.getElementById('print-preview-content');
+    if (previewContainer) {
+        console.log('Preview container found');
+        console.log('Container width:', previewContainer.offsetWidth);
+        console.log('Container height:', previewContainer.offsetHeight);
+        console.log('Container scrollHeight:', previewContainer.scrollHeight);
+    } else {
+        console.error('Preview container NOT found');
+    }
+    
+    const modal = document.getElementById('print-preview-modal');
+    if (modal) {
+        console.log('Modal found');
+    } else {
+        console.error('Modal NOT found');
+    }
+    console.log('=====================');
 }
 
 /**
@@ -1060,8 +1119,12 @@ function openPrintPreview(event) {
     modal.classList.add('show');
     document.body.style.overflow = 'hidden';
     
-    // 4. Setup PDF save button
+    // 4. Run debug after a short delay to let rendering complete
+    setTimeout(debugPDF, 500);
+    
+    // 5. Setup PDF save button
     saveBtn.onclick = function() {
+        debugPDF();
         saveAsPDF(previewContainer);
     };
 }

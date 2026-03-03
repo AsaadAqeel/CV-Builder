@@ -3052,11 +3052,51 @@ body.printing .experience-card::before {
     padding: 30px;
 }
 
+/* PDF-specific generation styles */
+.generating-pdf #print-preview-content {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    max-width: 210mm !important;
+    margin: 0 !important;
+    padding: 10mm !important;
+    box-shadow: none !important;
+    position: relative !important;
+    overflow: visible !important;
+}
+
+.generating-pdf .print-resume {
+    max-width: 190mm !important;
+    width: 190mm !important;
+}
+
+/* Print media query for direct printing */
+@media print {
+    @page {
+        size: A4;
+        margin: 10mm;
+    }
+    
+    body {
+        background: white !important;
+        color: black !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    #print-preview-content {
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+    }
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     #print-preview-content {
         padding: 20px;
         font-size: 10pt;
+        max-width: 100%;
     }
     
     .print-header h1 {
