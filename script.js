@@ -512,7 +512,6 @@ document.addEventListener('mousemove', (e) => {
     }
 });
 
-// ===== PDF EXPORT =====
 // ===== PDF EXPORT & PREVIEW =====
 const modal = document.getElementById('print-preview-modal');
 const closeBtn = document.querySelector('.close-modal');
@@ -523,6 +522,10 @@ const previewFrame = document.getElementById('pdf-preview-frame');
 // Store the generated PDF object to save later
 let generatedPdf = null;
 
+/**
+ * Opens the print preview with optimized PDF generation
+ * Uses professional ATS-friendly settings
+ */
 function openPrintPreview() {
     // 1. Add printing class to body to transform layout
     document.body.classList.add('printing');
@@ -535,23 +538,34 @@ function openPrintPreview() {
 
     // 2. Wait for CSS to apply (small delay)
     setTimeout(() => {
-        // 3. Generate PDF Blob
+        // 3. Generate PDF Blob with professional settings
         const opt = {
-            margin: [10, 0, 10, 0], // Top, Left, Bottom, Right margins
-            filename: 'my-resume.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
+            margin: [15, 15, 15, 15], // 15mm margins on all sides (A4 standard)
+            filename: 'resume.pdf',
+            image: { 
+                type: 'jpeg', 
+                quality: 0.95 
+            },
             html2canvas: {
-                scale: 2,
-                useCORS: true,
-                logging: false,
-                scrollY: 0
+                scale: 2,              // High resolution for crisp text
+                useCORS: true,         // Allow cross-origin images
+                logging: false,        // Disable logging for production
+                scrollY: 0,            // Capture from top
+                backgroundColor: '#FFFFFF', // Ensure white background
+                windowWidth: 794,      // A4 width in pixels at 96 DPI
+                windowHeight: 1123     // A4 height in pixels at 96 DPI
             },
             jsPDF: {
                 unit: 'mm',
                 format: 'a4',
-                orientation: 'portrait'
+                orientation: 'portrait',
+                compress: true         // Compress PDF for smaller file size
             },
-            pagebreak: { mode: ['css', 'legacy'] }
+            pagebreak: { 
+                mode: ['css', 'legacy'],
+                before: ['.section-header'],  // Avoid breaking before headers
+                avoid: ['.experience-card', '.education-card', '.project-card', '.cert-card', '.award-card']
+            }
         };
 
         // Generate the PDF worker
@@ -559,7 +573,7 @@ function openPrintPreview() {
 
         worker.get('pdf').then(function (pdfObject) {
             // 4. Capture Blob
-            generatedPdf = pdfObject; // Store for saving later (if needed, but blob is better)
+            generatedPdf = pdfObject; // Store for saving later
             const blob = pdfObject.output('blob');
             const blobUrl = URL.createObjectURL(blob);
 
@@ -575,8 +589,9 @@ function openPrintPreview() {
 
             // Setup Save Button
             saveBtn.onclick = function () {
-                // Trigger download
-                pdfObject.save('my-resume.pdf');
+                // Trigger download with professional filename
+                const fullName = document.querySelector('.hero-text h1')?.textContent?.replace(/\s+/g, '_') || 'resume';
+                pdfObject.save(`${fullName}_Resume.pdf`);
                 closePrintModal();
             };
 

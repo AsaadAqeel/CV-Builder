@@ -10,18 +10,18 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Preview Control Bar */
+/* Preview Control Bar */
         .preview-controls {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            background: #1f2937;
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
             padding: 15px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             z-index: 1000;
         }
 
@@ -29,6 +29,9 @@
             color: white;
             font-weight: 600;
             font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 20px;
         }
 
         .preview-actions {
@@ -37,10 +40,11 @@
         }
 
         .btn-preview {
-            padding: 8px 16px;
-            border-radius: 6px;
+            padding: 10px 20px;
+            border-radius: 8px;
             border: none;
             font-weight: 500;
+            font-size: 14px;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
@@ -51,48 +55,55 @@
         .btn-back {
             background: rgba(255, 255, 255, 0.1);
             color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .btn-back:hover {
             background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
         }
 
         .btn-download {
-            background: #7c3aed;
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
             color: white;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
         }
 
         .btn-download:hover {
-            background: #6d28d9;
+            background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
         }
 
         body {
             padding-top: 80px;
-            /* Space for fixed header */
-            background-color: #52525b;
-            /* Dark background to make paper pop */
+            background-color: #374151;
+            font-family: 'Georgia', 'Times New Roman', serif;
         }
 
-        /* Paper Simulation */
+        /* Paper Simulation - Professional A4 */
         .preview-container {
             width: 210mm;
             min-height: 297mm;
-            margin: 20px auto;
+            margin: 30px auto;
             background: white;
-            padding: 0;
-            /* Let print styles handle padding */
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            padding: 15mm;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             position: relative;
+            box-sizing: border-box;
         }
 
         /* Hide specific elements in preview */
         .navbar,
         .scroll-top-btn,
-        .hamburger {
-            display: none !important;
-        }
-
-        .hero-buttons {
+        .hamburger,
+        .hero-buttons,
+        .hero-bg-shapes,
+        .project-links,
+        .social-links,
+        .footer,
+        .view-cert-btn,
+        .view-file-btn {
             display: none !important;
         }
 
@@ -109,13 +120,14 @@
         body.generating-pdf .preview-container {
             box-shadow: none !important;
             margin: 0 !important;
-            width: 100% !important;
+            width: 210mm !important;
+            padding: 15mm !important;
         }
 
         /* Print page setup */
         @page {
-            margin: 0;
-            size: auto;
+            margin: 15mm;
+            size: A4 portrait;
         }
 
         @media print {
@@ -132,9 +144,10 @@
             .preview-container {
                 width: 100%;
                 margin: 0;
-                padding: 0;
+                padding: 15mm;
                 box-shadow: none;
                 border: none;
+                min-height: auto;
             }
 
             /* Ensure background colors print */
@@ -144,89 +157,7 @@
             }
         }
 
-        /* ===== A4 PRINT OVERRIDES & PREVIEW ===== */
-        .preview-container .container {
-            width: 100% !important;
-            max-width: none !important;
-            padding: 0 40px !important;
-            /* Standard print margin */
-        }
-
-        .preview-container section {
-            padding: 20px 0 !important;
-            /* Reduce vertical padding */
-        }
-
-        .preview-container .section-header {
-            margin-bottom: 20px !important;
-        }
-
-        .preview-container .hero-content {
-            gap: 30px !important;
-            padding: 40px 40px 0 !important;
-        }
-
-        .preview-container .hero-text h1 {
-            font-size: 48px !important;
-            /* Scale down title */
-        }
-
-        .preview-container .summary-text,
-        .preview-container p {
-            font-size: 14px !important;
-            /* Readable print size */
-        }
-
-        /* Prevent awkward page breaks */
-        .experience-card,
-        .project-card,
-        .education-card,
-        .cert-card,
-        .award-card,
-        .skill-category {
-            break-inside: avoid;
-            page-break-inside: avoid;
-            margin-bottom: 20px !important;
-        }
-
-        .skills-grid {
-            gap: 30px !important;
-        }
-
-        .section-header h2 {
-            font-size: 28px !important;
-        }
-    </style>
-</head>
-
-<body>
-
-    <link rel="stylesheet" href="cv-themes.css">
-    <style>
-        /* Preview Control Bar */
-        .preview-controls {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: #1f2937;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-        }
-
-        .preview-title {
-            color: white;
-            font-weight: 600;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
+        /* Theme Selector */
         .theme-selector {
             display: flex;
             gap: 10px;
@@ -243,10 +174,11 @@
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
-            padding: 6px 12px;
+            padding: 8px 16px;
             border-radius: 6px;
             cursor: pointer;
             font-size: 0.85rem;
+            font-weight: 500;
             transition: all 0.2s;
         }
 
@@ -255,64 +187,34 @@
         }
 
         .theme-btn.active {
-            background: #7c3aed;
-            border-color: #7c3aed;
-        }
-
-        .preview-actions {
-            display: flex;
-            gap: 15px;
-        }
-
-        .btn-preview {
-            padding: 8px 16px;
-            border-radius: 6px;
-            border: none;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-back {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .btn-back:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-download {
-            background: #7c3aed;
-            color: white;
-        }
-
-        .btn-download:hover {
-            background: #6d28d9;
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
         }
     </style>
+</head>
+
+<body>
+
+    <link rel="stylesheet" href="cv-themes.css">
     </head>
 
     <body>
-
         <div class="preview-controls">
             <div class="preview-title">
-                Print Preview
+                <span>📄 Print Preview - Professional Resume</span>
                 <div class="theme-selector">
-                    <span>Theme:</span>
+                    <span>Layout:</span>
                     <button class="theme-btn active" onclick="setTheme('modern')">Modern</button>
                     <button class="theme-btn" onclick="setTheme('minimal')">Minimal</button>
                     <button class="theme-btn" onclick="setTheme('professional')">Professional</button>
                 </div>
             </div>
             <div class="preview-actions">
-                <button onclick="window.close()" class="btn-preview btn-back">
+                <button onclick="window.close()" class="btn-preview btn-back" aria-label="Go back">
                     <i class="fas fa-arrow-left"></i> Back
                 </button>
-                <button onclick="generatePDF()" class="btn-preview btn-download">
+                <button onclick="generatePDF()" class="btn-preview btn-download" aria-label="Download PDF">
                     <i class="fas fa-file-pdf"></i> Download PDF
                 </button>
             </div>
@@ -780,10 +682,86 @@
 
         <script src="script.js"></script>
         <script>
-            function generatePDF() {
-                window.print();
+            /**
+             * Generates professional PDF with optimized settings
+             * Uses html2pdf.js for high-quality ATS-friendly output
+             */
+            async function generatePDF() {
+                // Add generating class for CSS adjustments
+                document.body.classList.add('generating-pdf');
+                
+                // Show loading state
+                const btn = document.querySelector('.btn-download');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+                btn.disabled = true;
+
+                try {
+                    // Load html2pdf.js if not already loaded
+                    if (typeof html2pdf === 'undefined') {
+                        await new Promise((resolve, reject) => {
+                            const script = document.createElement('script');
+                            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+                            script.onload = resolve;
+                            script.onerror = reject;
+                            document.head.appendChild(script);
+                        });
+                    }
+
+                    const cvContent = document.getElementById('cv-content');
+                    const fullName = document.querySelector('.hero-text h1')?.textContent?.trim() || 'Resume';
+                    const safeFilename = fullName.replace(/[^a-zA-Z0-9]/g, '_');
+
+                    // Professional PDF options
+                    const opt = {
+                        margin: [15, 15, 15, 15], // 15mm margins
+                        filename: `${safeFilename}_Resume.pdf`,
+                        image: { 
+                            type: 'jpeg', 
+                            quality: 0.95 
+                        },
+                        html2canvas: {
+                            scale: 2,
+                            useCORS: true,
+                            logging: false,
+                            scrollY: 0,
+                            backgroundColor: '#FFFFFF',
+                            windowWidth: 794,
+                            windowHeight: 1123
+                        },
+                        jsPDF: {
+                            unit: 'mm',
+                            format: 'a4',
+                            orientation: 'portrait',
+                            compress: true
+                        },
+                        pagebreak: { 
+                            mode: ['css', 'legacy'],
+                            before: ['.section-header'],
+                            avoid: ['.experience-card', '.education-card', '.project-card', '.cert-card', '.award-card']
+                        }
+                    };
+
+                    // Generate and download PDF
+                    await html2pdf().set(opt).from(cvContent).save();
+
+                } catch (error) {
+                    console.error('PDF generation error:', error);
+                    // Fallback to browser print
+                    alert('Using browser print as fallback. For best results, use Chrome or Edge.');
+                    window.print();
+                } finally {
+                    // Reset state
+                    document.body.classList.remove('generating-pdf');
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                }
             }
 
+            /**
+             * Sets the preview theme
+             * @param {string} theme - Theme name: 'modern', 'minimal', or 'professional'
+             */
             function setTheme(theme) {
                 // Remove all theme classes
                 document.body.classList.remove('theme-modern', 'theme-minimal', 'theme-professional');
@@ -803,10 +781,14 @@
                 localStorage.setItem('cv-theme', theme);
             }
 
-            // Load saved theme on startup
+            // Load saved theme and data on startup
             document.addEventListener('DOMContentLoaded', () => {
+                // Load theme
                 const savedTheme = localStorage.getItem('cv-theme') || 'modern';
                 setTheme(savedTheme);
+
+                // Load CV data from localStorage
+                loadCVData();
             });
         </script>
     </body>
