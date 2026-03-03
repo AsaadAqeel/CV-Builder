@@ -1110,8 +1110,9 @@ async function exportStaticWebsite() {
         const dataScript = `<script>window.EXPORTED_CV_DATA = ${JSON.stringify(cvData)};</script>\n`;
         let modifiedIndexHtml = indexHtml.replace('</head>', dataScript + '</head>');
 
-        // Remove the "Edit CV" button
-        modifiedIndexHtml = modifiedIndexHtml.replace(/<a[^>]*href=["']dashboard\.html["'][^>]*>Edit CV<\/a>/i, '');
+        // Remove the "Edit CV" and "Download CV" buttons from the static export
+        modifiedIndexHtml = modifiedIndexHtml.replace(/<a[^>]*href=["']dashboard\.html["'][^>]*>Edit CV<\/a>/gi, '');
+        modifiedIndexHtml = modifiedIndexHtml.replace(/<a[^>]*onclick=["']window\.print\(\)["'][^>]*>Download CV<\/a>/gi, '');
 
         // 3. Add to zip
         zip.file('index.html', modifiedIndexHtml);
