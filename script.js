@@ -1672,8 +1672,9 @@ async function exportStaticWebsite() {
         // Get current index.html
         let html = document.documentElement.outerHTML;
         
-        // Remove the export button from the exported HTML
+        // Remove all export buttons from the exported HTML
         html = html.replace(/<button[^>]*onclick="exportStaticWebsite\(\)"[^>]*>.*?<\/button>/gis, '');
+        html = html.replace(/<a[^>]*onclick="exportStaticWebsite\(\)"[^>]*>.*?<\/a>/gis, '');
         
         // Inject CV data into the exported HTML
         html = html.replace(
