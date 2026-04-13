@@ -517,8 +517,14 @@ function saveAllData(silent = false) {
     localStorage.setItem('cvData', JSON.stringify(cvData));
     calculateStrength();
     updatePreview();
+    
     if (!silent) {
         showSuccessMessage();
+        
+        // Open index.html in new tab to show updated CV
+        setTimeout(() => {
+            window.open('index.html', '_blank');
+        }, 500);
     }
 }
 
