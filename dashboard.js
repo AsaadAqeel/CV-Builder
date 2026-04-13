@@ -439,6 +439,7 @@ let currentProfileImage = '';
 
 function setupImageUpload() {
     const fileInput = document.getElementById('profileImage');
+    if (!fileInput) return;
 
     fileInput.addEventListener('change', function (e) {
         const file = e.target.files[0];
@@ -478,7 +479,8 @@ function updateImagePreview(imageSrc) {
 
 function removeProfileImage() {
     currentProfileImage = '';
-    document.getElementById('profileImage').value = '';
+    const fileInput = document.getElementById('profileImage');
+    if (fileInput) fileInput.value = '';
     updateImagePreview('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop');
 }
 
