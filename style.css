@@ -253,6 +253,30 @@ body {
     height: 350px;
 }
 
+.btn-remove-photo {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.btn-remove-photo:hover {
+    background: #ef4444;
+    transform: scale(1.1);
+}
+
 .profile-image img {
     width: 100%;
     height: 100%;

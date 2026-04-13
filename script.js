@@ -57,6 +57,9 @@ function loadCVData() {
             }
             if (profileImg && cvData.personal.profileImage) {
                 profileImg.src = cvData.personal.profileImage;
+                profileImg.closest('.profile-image').style.display = 'block';
+            } else if (profileImg) {
+                profileImg.closest('.profile-image').style.display = 'none';
             }
         }
 
@@ -1389,6 +1392,19 @@ function openPrintPreview(event) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded - initializing modal handlers');
     initModalHandlers();
+    
+    // Check if photo was removed
+    if (localStorage.getItem('cvPhotoRemoved') === 'true') {
+        removePhoto();
+    }
 });
+
+function removePhoto() {
+    const heroImage = document.getElementById('heroImageContainer');
+    if (heroImage) {
+        heroImage.style.display = 'none';
+    }
+    localStorage.setItem('cvPhotoRemoved', 'true');
+}
 
 

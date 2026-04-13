@@ -588,6 +588,28 @@
     font-size: 16px;
 }
 
+/* Export Button Styling */
+.btn-secondary {
+    background: transparent;
+    color: #a78bfa;
+    border: 2px solid #7c3aed;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+}
+
+.btn-secondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
     .dashboard-sidebar {
