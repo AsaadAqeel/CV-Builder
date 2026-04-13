@@ -1651,7 +1651,7 @@ function generateCleanA4HTML(cvData) {
 }
 
 /**
- * Export static website with user data
+ * Export static website - downloads index.html with user data
  */
 async function exportStaticWebsite() {
     const btn = document.querySelector('.btn-download-pdf');
@@ -1661,32 +1661,21 @@ async function exportStaticWebsite() {
     }
 
     try {
-        const savedData = localStorage.getItem('cvData');
-        if (!savedData) {
-            alert('No CV data found. Please save your CV first.');
-            return;
-        }
-
-        const cvData = JSON.parse(savedData);
-        
-        // Get current index.html
+        // Get current page HTML (already has user data rendered)
         let html = document.documentElement.outerHTML;
         
-        // Remove all export buttons from the exported HTML
+        // Remove export button from the exported HTML
         html = html.replace(/<button[^>]*onclick="exportStaticWebsite\(\)"[^>]*>.*?<\/button>/gis, '');
         html = html.replace(/<a[^>]*onclick="exportStaticWebsite\(\)"[^>]*>.*?<\/a>/gis, '');
         
-        // Inject CV data into the exported HTML
-        // Also clear any existing localStorage to prevent conflicts
-        html = html.replace(
-            '</body>',
-            `<script>
-                // Clear localStorage to ensure only exported data is used
-                localStorage.removeItem('cvData');
-                localStorage.removeItem('cvPhotoRemoved');
-                window.EXPORTED_CV_DATA = ${JSON.stringify(cvData)};
-            <\/script></body>`
-        );
+        // Download as HTML file
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'index.html';
+        a.click();
+        URL.revokeObjectURL(url);
         
         // Download as HTML file
         const blob = new Blob([html], { type: 'text/html' });
