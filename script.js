@@ -1408,10 +1408,17 @@ function removePhoto() {
 }
 
 /**
- * Download CV as PDF - Standalone function
+ * Download CV as PDF - Enhanced with loading state and auto-scaling
  */
 function downloadCVAsPDF() {
     console.log('Download CV as PDF...');
+    
+    // Show loading state
+    const btn = document.querySelector('.btn-download-pdf');
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        btn.disabled = true;
+    }
     
     // Get data from localStorage or extract from DOM
     const savedData = localStorage.getItem('cvData');
@@ -1440,17 +1447,31 @@ function downloadCVAsPDF() {
     container.style.position = 'absolute';
     container.style.left = '-9999px';
     container.style.top = '0';
-    container.style.width = '210mm';
+    container.style.width = '190mm';
     container.style.padding = '15mm';
     container.style.background = '#fff';
     container.style.fontFamily = "'Times New Roman', Georgia, serif";
     container.style.fontSize = '11pt';
     container.style.lineHeight = '1.4';
     container.style.color = '#000';
+    container.style.boxSizing = 'border-box';
     
     // Generate clean A4 HTML
     container.innerHTML = generateCleanA4HTML(cvData);
     document.body.appendChild(container);
+    
+    // Calculate content height and adjust scale if needed
+    const contentHeight = container.offsetHeight;
+    const maxHeight = 277; // A4 height in mm minus margins
+    let scale = 1;
+    
+    if (contentHeight > maxHeight * 1.33) {
+        scale = 0.85;
+    } else if (contentHeight > maxHeight * 1.2) {
+        scale = 0.9;
+    } else if (contentHeight > maxHeight * 1.1) {
+        scale = 0.95;
+    }
     
     // PDF options optimized for A4
     const opt = {
@@ -1461,12 +1482,19 @@ function downloadCVAsPDF() {
             quality: 0.98 
         },
         html2canvas: { 
-            scale: 3,
+            scale: 3 * scale,
             useCORS: true,
             logging: false,
             scrollY: 0,
             scrollX: 0,
-            windowWidth: 794
+            windowWidth: 794,
+            onclone: (clonedDoc) => {
+                const clonedContainer = clonedDoc.getElementById('pdf-generation-container');
+                if (clonedContainer) {
+                    clonedContainer.style.transform = `scale(${scale})`;
+                    clonedContainer.style.transformOrigin = 'top left';
+                }
+            }
         },
         jsPDF: { 
             unit: 'mm', 
@@ -1475,18 +1503,30 @@ function downloadCVAsPDF() {
         },
         pagebreak: { 
             mode: ['css', 'legacy'],
-            avoid: ['.print-item', '.print-section', '.print-experience']
+            avoid: ['.print-item', '.print-section', '.print-experience', 'h2', 'h3']
         }
     };
     
-    console.log('Generating PDF with filename:', filename);
+    console.log('Generating PDF with filename:', filename, 'Scale:', scale);
+    
+    // Reset button after PDF generation
+    const resetButton = () => {
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download CV';
+            btn.disabled = false;
+        }
+    };
     
     html2pdf().set(opt).from(container).save().then(() => {
         console.log('PDF saved successfully');
         document.body.removeChild(container);
+        resetButton();
     }).catch(err => {
         console.error('PDF generation error:', err);
-        document.body.removeChild(container);
+        if (document.body.contains(container)) {
+            document.body.removeChild(container);
+        }
+        resetButton();
     });
 }
 
