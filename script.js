@@ -1407,4 +1407,207 @@ function removePhoto() {
     localStorage.setItem('cvPhotoRemoved', 'true');
 }
 
+/**
+ * Download CV as PDF - Standalone function
+ */
+function downloadCVAsPDF() {
+    console.log('Download CV as PDF...');
+    
+    // Get data from localStorage or extract from DOM
+    const savedData = localStorage.getItem('cvData');
+    let cvData = {};
+    
+    if (savedData) {
+        try {
+            cvData = JSON.parse(savedData);
+        } catch (e) {
+            console.error('Error parsing CV data:', e);
+            cvData = extractDataFromDOM();
+        }
+    } else {
+        cvData = extractDataFromDOM();
+    }
+    
+    // Get user's name for filename
+    let filename = 'My_CV.pdf';
+    if (cvData.personal?.fullName) {
+        filename = cvData.personal.fullName.replace(/\s+/g, '_') + '_CV.pdf';
+    }
+    
+    // Create hidden container for PDF generation
+    const container = document.createElement('div');
+    container.id = 'pdf-generation-container';
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '210mm';
+    container.style.padding = '15mm';
+    container.style.background = '#fff';
+    container.style.fontFamily = "'Times New Roman', Georgia, serif";
+    container.style.fontSize = '11pt';
+    container.style.lineHeight = '1.4';
+    container.style.color = '#000';
+    
+    // Generate clean A4 HTML
+    container.innerHTML = generateCleanA4HTML(cvData);
+    document.body.appendChild(container);
+    
+    // PDF options optimized for A4
+    const opt = {
+        margin: [0, 0, 0, 0],
+        filename: filename,
+        image: { 
+            type: 'jpeg', 
+            quality: 0.98 
+        },
+        html2canvas: { 
+            scale: 3,
+            useCORS: true,
+            logging: false,
+            scrollY: 0,
+            scrollX: 0,
+            windowWidth: 794
+        },
+        jsPDF: { 
+            unit: 'mm', 
+            format: 'a4', 
+            orientation: 'portrait' 
+        },
+        pagebreak: { 
+            mode: ['css', 'legacy'],
+            avoid: ['.print-item', '.print-section', '.print-experience']
+        }
+    };
+    
+    console.log('Generating PDF with filename:', filename);
+    
+    html2pdf().set(opt).from(container).save().then(() => {
+        console.log('PDF saved successfully');
+        document.body.removeChild(container);
+    }).catch(err => {
+        console.error('PDF generation error:', err);
+        document.body.removeChild(container);
+    });
+}
+
+/**
+ * Generate clean A4 HTML for PDF
+ */
+function generateCleanA4HTML(cvData) {
+    const d = cvData;
+    
+    return `
+    <div class="print-resume-a4">
+        <!-- HEADER -->
+        <header style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 12px;">
+            <h1 style="font-size: 22pt; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 4px 0; color: #000;">${escapeHtml(d.personal?.fullName || 'Your Name')}</h1>
+            <p style="font-size: 12pt; color: #333; margin: 0 0 6px 0;">${escapeHtml(d.personal?.jobTitle || 'Job Title')}</p>
+            <div style="font-size: 9pt; color: #333;">
+                ${d.contact?.email ? `<span>${escapeHtml(d.contact.email)}</span>` : ''}
+                ${d.contact?.email && d.contact?.phone ? `<span style="margin: 0 6px;">|</span>` : ''}
+                ${d.contact?.phone ? `<span>${escapeHtml(d.contact.phone)}</span>` : ''}
+                ${d.contact?.phone && d.contact?.linkedin ? `<span style="margin: 0 6px;">|</span>` : ''}
+                ${d.contact?.linkedin ? `<span>${escapeHtml(d.contact.linkedin.replace('https://', ''))}</span>` : ''}
+            </div>
+        </header>
+        
+        <!-- SUMMARY -->
+        ${d.summary ? `
+        <section style="margin-bottom: 10px;">
+            <h2 style="font-size: 11pt; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 3px; margin-bottom: 6px;">Professional Summary</h2>
+            <p style="font-size: 10pt; color: #333; margin: 0; text-align: justify;">${escapeHtml(d.summary)}</p>
+        </section>
+        ` : ''}
+        
+        <!-- EXPERIENCE -->
+        ${d.experience && d.experience.length > 0 ? `
+        <section style="margin-bottom: 10px;">
+            <h2 style="font-size: 11pt; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 3px; margin-bottom: 6px;">Work Experience</h2>
+            ${d.experience.map(exp => `
+            <div class="print-experience" style="margin-bottom: 8px; page-break-inside: avoid;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                    <div>
+                        <strong style="font-size: 10pt;">${escapeHtml(exp.company)}</strong>
+                        <span style="font-size: 10pt; color: #333;"> - ${escapeHtml(exp.role)}</span>
+                    </div>
+                    <span style="font-size: 10pt; color: #333;">${escapeHtml(exp.startDate)} - ${escapeHtml(exp.endDate)}</span>
+                </div>
+                ${exp.achievements && exp.achievements.length > 0 ? `
+                <ul style="margin: 2px 0 0 12px; padding-left: 0;">
+                    ${exp.achievements.map(ach => `<li style="font-size: 9.5pt; color: #333; margin-bottom: 2px;">${escapeHtml(ach)}</li>`).join('')}
+                </ul>
+                ` : ''}
+            </div>
+            `).join('')}
+        </section>
+        ` : ''}
+        
+        <!-- EDUCATION -->
+        ${d.education && d.education.length > 0 ? `
+        <section style="margin-bottom: 10px;">
+            <h2 style="font-size: 11pt; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 3px; margin-bottom: 6px;">Education</h2>
+            ${d.education.map(edu => `
+            <div style="margin-bottom: 6px; page-break-inside: avoid;">
+                <div style="display: flex; justify-content: space-between;">
+                    <div>
+                        <strong style="font-size: 10pt;">${escapeHtml(edu.degree)}</strong>
+                        <span style="font-size: 10pt; color: #333;"> - ${escapeHtml(edu.institution)}</span>
+                    </div>
+                    <span style="font-size: 10pt; color: #333;">${escapeHtml(edu.graduationDate)}</span>
+                </div>
+            </div>
+            `).join('')}
+        </section>
+        ` : ''}
+        
+        <!-- SKILLS -->
+        ${(d.technicalSkills?.length > 0 || d.softSkills?.length > 0) ? `
+        <section style="margin-bottom: 10px;">
+            <h2 style="font-size: 11pt; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 3px; margin-bottom: 6px;">Skills</h2>
+            <p style="font-size: 10pt; color: #333; margin: 0;">
+                ${[...d.technicalSkills.map(s => s.name), ...d.softSkills.map(s => s.name)].join(', ')}
+            </p>
+        </section>
+        ` : ''}
+        
+        <!-- PROJECTS -->
+        ${d.projects && d.projects.length > 0 ? `
+        <section style="margin-bottom: 10px;">
+            <h2 style="font-size: 11pt; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 3px; margin-bottom: 6px;">Projects</h2>
+            ${d.projects.map(proj => `
+            <div style="margin-bottom: 6px; page-break-inside: avoid;">
+                <strong style="font-size: 10pt;">${escapeHtml(proj.name)}</strong>
+                <p style="font-size: 9.5pt; color: #333; margin: 2px 0;">${escapeHtml(proj.description)}</p>
+            </div>
+            `).join('')}
+        </section>
+        ` : ''}
+        
+        <!-- CERTIFICATIONS -->
+        ${d.certifications && d.certifications.length > 0 ? `
+        <section style="margin-bottom: 10px;">
+            <h2 style="font-size: 11pt; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 3px; margin-bottom: 6px;">Certifications</h2>
+            ${d.certifications.map(cert => `
+            <p style="font-size: 10pt; color: #333; margin: 0 0 2px 0;">
+                <strong>${escapeHtml(cert.name)}</strong> - ${escapeHtml(cert.organization)} (${escapeHtml(cert.year)})
+            </p>
+            `).join('')}
+        </section>
+        ` : ''}
+        
+        <!-- AWARDS -->
+        ${d.awards && d.awards.length > 0 ? `
+        <section style="margin-bottom: 10px;">
+            <h2 style="font-size: 11pt; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 3px; margin-bottom: 6px;">Awards</h2>
+            ${d.awards.map(award => `
+            <p style="font-size: 10pt; color: #333; margin: 0 0 2px 0;">
+                <strong>${escapeHtml(award.name)}</strong> - ${escapeHtml(award.organization)} (${escapeHtml(award.year)})
+            </p>
+            `).join('')}
+        </section>
+        ` : ''}
+    </div>
+    `;
+}
+
 

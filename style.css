@@ -1618,6 +1618,29 @@ section {
     display: none !important;
 }
 
+.btn-download-pdf {
+    background: var(--gradient-primary);
+    color: var(--white) !important;
+    padding: 8px 20px;
+    border-radius: 50px;
+    margin-left: 10px;
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+    font-weight: 600;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.btn-download-pdf:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
+}
+
 @media (max-width: 480px) {
     .section-header h2 {
         font-size: 28px;
