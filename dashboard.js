@@ -1380,37 +1380,33 @@ async function exportStaticWebsite() {
         
         const cvData = JSON.parse(savedData);
         
-        // 2. Get all necessary files
-        const [indexHTML, styleCSS, scriptJS, themesCSS] = await Promise.all([
-            fetchFile('index.html'),
-            fetchFile('style.css'),
-            fetchFile('script.js'),
-            fetchFile('cv-themes.css').catch(() => '') // Optional file
-        ]);
-        
-        // 3. Process files
-        const processedIndexHTML = processIndexHTML(indexHTML, cvData);
-        const processedScriptJS = processScriptJS(scriptJS, cvData);
-        
-        // 4. Create ZIP file
-        const zip = new JSZip();
-        zip.file('index.html', processedIndexHTML);
-        zip.file('style.css', styleCSS);
-        zip.file('script.js', processedScriptJS);
-        if (themesCSS) {
-            zip.file('cv-themes.css', themesCSS);
+        // 2. Get index.html
+        const response = await fetch('index.html');
+        if (!response.ok) {
+            throw new Error('Failed to fetch index.html');
         }
+        let html = await response.text();
         
-        // Add README
-        zip.file('README.txt', generateReadme(cvData));
+        // 3. Remove dashboard link from navigation
+        html = html.replace(/<a[^>]*href=["']dashboard\.html["'][^>]*>.*?<\/a>/gis, '');
         
-        // 5. Generate and download ZIP
-        const content = await zip.generateAsync({ type: 'blob' });
-        const filename = `${cvData.personal?.fullName?.replace(/\s+/g, '_') || 'My'}_CV_Website.zip`;
-        saveAs(content, filename);
+        // 4. Remove Export Website button from exported HTML
+        html = html.replace(/<button[^>]*onclick="exportStaticWebsite\(\)"[^>]*>.*?<\/button>/gis, '');
         
-        // Show success
-        showSuccessMessage();
+        // 5. Inject CV data into the HTML
+        html = html.replace(
+            '</body>',
+            `<script>window.EXPORTED_CV_DATA = ${JSON.stringify(cvData)};</script></body>`
+        );
+        
+        // 6. Download as HTML file
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${cvData.personal?.fullName?.replace(/\s+/g, '_') || 'My'}_CV.html`;
+        a.click();
+        URL.revokeObjectURL(url);
         
     } catch (error) {
         console.error('Export error:', error);
@@ -1422,15 +1418,6 @@ async function exportStaticWebsite() {
             btn.disabled = false;
         }
     }
-}
-
-// Helper: Fetch file content
-async function fetchFile(filename) {
-    const response = await fetch(filename);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch ${filename}`);
-    }
-    return response.text();
 }
 
 // Helper: Process index.html - embed data and remove dashboard links
