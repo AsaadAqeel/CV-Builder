@@ -1677,9 +1677,15 @@ async function exportStaticWebsite() {
         html = html.replace(/<a[^>]*onclick="exportStaticWebsite\(\)"[^>]*>.*?<\/a>/gis, '');
         
         // Inject CV data into the exported HTML
+        // Also clear any existing localStorage to prevent conflicts
         html = html.replace(
             '</body>',
-            `<script>window.EXPORTED_CV_DATA = ${JSON.stringify(cvData)};</script></body>`
+            `<script>
+                // Clear localStorage to ensure only exported data is used
+                localStorage.removeItem('cvData');
+                localStorage.removeItem('cvPhotoRemoved');
+                window.EXPORTED_CV_DATA = ${JSON.stringify(cvData)};
+            <\/script></body>`
         );
         
         // Download as HTML file
