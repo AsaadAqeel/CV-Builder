@@ -1687,7 +1687,7 @@ async function exportStaticWebsite() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${cvData.personal?.fullName?.replace(/\s+/g, '_') || 'My'}_CV.html`;
+        a.download = 'index.html';
         a.click();
         URL.revokeObjectURL(url);
         
