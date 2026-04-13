@@ -1650,4 +1650,55 @@ function generateCleanA4HTML(cvData) {
     `;
 }
 
+/**
+ * Export static website with user data
+ */
+async function exportStaticWebsite() {
+    const btn = document.querySelector('.btn-download-pdf');
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+        btn.disabled = true;
+    }
+
+    try {
+        const savedData = localStorage.getItem('cvData');
+        if (!savedData) {
+            alert('No CV data found. Please save your CV first.');
+            return;
+        }
+
+        const cvData = JSON.parse(savedData);
+        
+        // Get current index.html
+        let html = document.documentElement.outerHTML;
+        
+        // Remove the export button from the exported HTML
+        html = html.replace(/<button[^>]*onclick="exportStaticWebsite\(\)"[^>]*>.*?<\/button>/gis, '');
+        
+        // Inject CV data into the exported HTML
+        html = html.replace(
+            '</body>',
+            `<script>window.EXPORTED_CV_DATA = ${JSON.stringify(cvData)};</script></body>`
+        );
+        
+        // Download as HTML file
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${cvData.personal?.fullName?.replace(/\s+/g, '_') || 'My'}_CV.html`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+    } catch (error) {
+        console.error('Export error:', error);
+        alert('Failed to export website. Please try again.');
+    } finally {
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-file-export"></i> Export Website';
+            btn.disabled = false;
+        }
+    }
+}
+
 
