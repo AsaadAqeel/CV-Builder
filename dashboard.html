@@ -20,6 +20,7 @@
 </head>
 
 <body class="dashboard-body">
+    <a href="#personal" class="skip-to-content">Skip to main content</a>
     <noscript>
         <div style="position: fixed; top: 0; left: 0; right: 0; background: #ef4444; color: white; padding: 20px; text-align: center; z-index: 9999; font-family: system-ui, sans-serif;">
             <strong>JavaScript is required for this application to function properly.</strong> Please enable JavaScript in your browser settings.
@@ -42,6 +43,13 @@
             <button class="btn btn-success" onclick="saveAllData()">
                 <i class="fas fa-save"></i> Save Changes
             </button>
+            <button class="btn btn-secondary" onclick="exportData()" title="Export CV data as JSON backup">
+                <i class="fas fa-download"></i> Backup
+            </button>
+            <label class="btn btn-secondary" title="Import CV data from JSON backup" style="cursor:pointer;">
+                <i class="fas fa-upload"></i> Restore
+                <input type="file" accept=".json" onchange="importData(this)" style="display:none;" aria-label="Import CV data from JSON file">
+            </label>
             <button class="btn btn-secondary" onclick="exportStaticWebsite()">
                 <i class="fas fa-file-export"></i> Export Website
             </button>
@@ -113,6 +121,13 @@
                 <span>All changes saved successfully!</span>
             </div>
 
+            <!-- Backup Reminder Banner -->
+            <div class="backup-banner" id="backupBanner">
+                <i class="fas fa-shield-alt"></i>
+                <span>Your data lives only in this browser — <a href="javascript:void(0)" onclick="exportData()">download a backup</a> to keep it safe.</span>
+                <button type="button" class="backup-dismiss" onclick="document.getElementById('backupBanner').style.display='none'" aria-label="Dismiss backup reminder">&times;</button>
+            </div>
+
             <!-- Section 1: Personal Information -->
             <section id="personal" class="form-section active">
                 <div class="section-header">
@@ -132,8 +147,9 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="age">Age</label>
+                        <label for="age">Age <span class="optional-hint">(optional)</span></label>
                         <input type="number" id="age" placeholder="30" min="18" max="100">
+                        <span class="help-text">Include only where customary — some regions discourage age on CVs.</span>
                     </div>
 
                     <div class="form-group">

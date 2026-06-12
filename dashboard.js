@@ -251,18 +251,18 @@ const defaultData = {
         }
     ],
     technicalSkills: [
-        { name: 'JavaScript / TypeScript', level: 95 },
-        { name: 'React / Next.js', level: 90 },
-        { name: 'Node.js / Express', level: 88 },
-        { name: 'Python / Django', level: 82 },
-        { name: 'AWS / Cloud Services', level: 78 }
+        { name: 'JavaScript / TypeScript', level: 4 },
+        { name: 'React / Next.js', level: 4 },
+        { name: 'Node.js / Express', level: 4 },
+        { name: 'Python / Django', level: 3 },
+        { name: 'AWS / Cloud Services', level: 3 }
     ],
     softSkills: [
-        { name: 'Leadership', level: 92 },
-        { name: 'Communication', level: 88 },
-        { name: 'Problem Solving', level: 95 },
-        { name: 'Team Collaboration', level: 90 },
-        { name: 'Project Management', level: 85 }
+        { name: 'Leadership', level: 4 },
+        { name: 'Communication', level: 4 },
+        { name: 'Problem Solving', level: 4 },
+        { name: 'Team Collaboration', level: 4 },
+        { name: 'Project Management', level: 3 }
     ],
     projects: [
         {
@@ -319,6 +319,9 @@ document.addEventListener('DOMContentLoaded', function () {
     setupCharacterCount();
     setupImageUpload();
     setupValidationListeners();
+    setupAutoSave();
+    setupStrengthTips();
+    setupDragReorder();
 });
 
 // ===== REAL-TIME VALIDATION =====
@@ -635,6 +638,118 @@ function collectFormData() {
     }
 }
 
+// ===== AUTO-SAVE =====
+var autoSaveTimer = null;
+function setupAutoSave() {
+    var mainContent = document.querySelector('.dashboard-main');
+    if (!mainContent) return;
+    mainContent.addEventListener('input', function() {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(function() {
+            if (validateAllFields()) {
+                collectFormData();
+                localStorage.setItem('cvData', JSON.stringify(cvData));
+                calculateStrength();
+                updatePreview();
+                showAutoSaveIndicator();
+            }
+        }, 800);
+    });
+}
+
+function showAutoSaveIndicator() {
+    var indicator = document.getElementById('autoSaveIndicator');
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.id = 'autoSaveIndicator';
+        indicator.style.cssText = 'position:fixed;top:90px;right:40px;background:rgba(16,185,129,0.9);color:white;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;z-index:1001;opacity:0;transition:opacity 0.3s ease;display:flex;align-items:center;gap:8px;pointer-events:none;';
+        indicator.innerHTML = '<i class="fas fa-check"></i> Saved';
+        document.body.appendChild(indicator);
+    }
+    indicator.style.opacity = '1';
+    setTimeout(function() { indicator.style.opacity = '0'; }, 1500);
+}
+
+// ===== STRENGTH METER TIPS =====
+function setupStrengthTips() {
+    var container = document.querySelector('.strength-meter-container');
+    if (!container) return;
+    container.style.cursor = 'pointer';
+    container.setAttribute('role', 'button');
+    container.setAttribute('tabindex', '0');
+    container.setAttribute('aria-label', 'CV Strength: click for tips');
+    container.addEventListener('click', showStrengthTips);
+    container.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showStrengthTips(); }
+    });
+}
+
+function showStrengthTips() {
+    var tips = [];
+    if (!cvData.personal.fullName) tips.push('Add your full name');
+    if (!cvData.personal.jobTitle) tips.push('Add your job title');
+    if (!cvData.contact.email) tips.push('Add your email address');
+    if (!cvData.contact.phone && !cvData.contact.linkedin) tips.push('Add at least one contact method (phone or LinkedIn)');
+    if (!cvData.summary || cvData.summary.length < 50) tips.push('Write a professional summary (2-3 sentences)');
+    if (cvData.experience.length === 0) tips.push('Add at least 1 work experience');
+    if (cvData.experience.length < 2) tips.push('Add at least 2 work experiences for a stronger CV');
+    if (cvData.education.length === 0) tips.push('Add your education');
+    if (cvData.technicalSkills.length === 0 && cvData.softSkills.length === 0) tips.push('Add some skills');
+    if (cvData.projects.length === 0) tips.push('Add a project to showcase your work');
+    
+    if (tips.length === 0) tips.push('Your CV looks great! Consider adding certifications or awards.');
+    
+    var existing = document.getElementById('strengthTipsPopup');
+    if (existing) existing.remove();
+    
+    var popup = document.createElement('div');
+    popup.id = 'strengthTipsPopup';
+    popup.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1f2937;border:1px solid rgba(124,58,237,0.3);border-radius:16px;padding:24px;max-width:360px;z-index:10000;box-shadow:0 20px 40px rgba(0,0,0,0.5);';
+    popup.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h3 style="color:white;font-size:18px;margin:0;">CV Improvement Tips</h3><button onclick="this.closest(\'#strengthTipsPopup\').remove()" style="background:none;border:none;color:#9ca3af;font-size:20px;cursor:pointer;padding:4px 8px;" aria-label="Close tips">&times;</button></div><ul style="list-style:none;padding:0;margin:0;">' +
+        tips.map(function(t) { return '<li style="color:#d1d5db;padding:8px 0;border-bottom:1px solid #374151;font-size:14px;"><i class="fas fa-lightbulb" style="color:#f59e0b;margin-right:8px;"></i>' + t + '</li>'; }).join('') +
+        '</ul>';
+    
+    var backdrop = document.createElement('div');
+    backdrop.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;';
+    backdrop.addEventListener('click', function() { backdrop.remove(); popup.remove(); });
+    document.body.appendChild(backdrop);
+    document.body.appendChild(popup);
+}
+
+// ===== DRAG TO REORDER =====
+function setupDragReorder() {
+    ['experienceList', 'educationList', 'projectsList'].forEach(function(listId) {
+        var container = document.getElementById(listId);
+        if (!container) return;
+        container.addEventListener('dragstart', function(e) {
+            var item = e.target.closest('.dynamic-item');
+            if (!item) return;
+            item.classList.add('dragging');
+            item.setAttribute('draggable', 'true');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        container.addEventListener('dragend', function(e) {
+            var item = e.target.closest('.dynamic-item');
+            if (item) item.classList.remove('dragging');
+        });
+        container.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            var dragging = container.querySelector('.dragging');
+            var target = e.target.closest('.dynamic-item');
+            if (target && target !== dragging) {
+                var rect = target.getBoundingClientRect();
+                var midY = rect.top + rect.height / 2;
+                if (e.clientY < midY) {
+                    container.insertBefore(dragging, target);
+                } else {
+                    container.insertBefore(dragging, target.nextSibling);
+                }
+            }
+        });
+    });
+}
+
 // ===== NAVIGATION =====
 function setupNavigation() {
     const menuItems = document.querySelectorAll('.sidebar-menu li');
@@ -711,11 +826,16 @@ function createExperienceItem(exp = {}, index) {
     div.className = 'dynamic-item';
     div.innerHTML = `
         <div class="item-header">
-            <span class="item-number">Experience #${index + 1}</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span class="item-number">Experience #${index + 1}</span>
+                <button type="button" class="btn-move" onclick="moveItem('experienceList', ${index}, -1)" title="Move up" aria-label="Move experience up"><i class="fas fa-chevron-up"></i></button>
+                <button type="button" class="btn-move" onclick="moveItem('experienceList', ${index}, 1)" title="Move down" aria-label="Move experience down"><i class="fas fa-chevron-down"></i></button>
+            </div>
             <button type="button" class="btn-remove" onclick="removeExperience(${index})">
                 <i class="fas fa-trash"></i> Remove
             </button>
         </div>
+        <div draggable="true" class="drag-handle" title="Drag to reorder" aria-label="Drag to reorder"><i class="fas fa-grip-vertical"></i> Drag to reorder</div>
         <div class="form-grid">
             <div class="form-group">
                 <label>Company Name</label>
@@ -768,6 +888,29 @@ function addExperience() {
 function removeExperience(index) {
     cvData.experience.splice(index, 1);
     renderExperienceList();
+}
+
+function moveItem(listId, index, direction) {
+    var container = document.getElementById(listId);
+    var items = container.querySelectorAll('.dynamic-item');
+    var newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= items.length) return;
+    
+    collectFormData();
+    
+    var arr;
+    if (listId === 'experienceList') arr = cvData.experience;
+    else if (listId === 'educationList') arr = cvData.education;
+    else if (listId === 'projectsList') arr = cvData.projects;
+    else return;
+    
+    var temp = arr[index];
+    arr[index] = arr[newIndex];
+    arr[newIndex] = temp;
+    
+    if (listId === 'experienceList') renderExperienceList();
+    else if (listId === 'educationList') renderEducationList();
+    else if (listId === 'projectsList') renderProjectsList();
 }
 
 function addAchievementInput(button) {
@@ -838,11 +981,16 @@ function createEducationItem(edu = {}, index) {
     div.className = 'dynamic-item';
     div.innerHTML = `
         <div class="item-header">
-            <span class="item-number">Education #${index + 1}</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span class="item-number">Education #${index + 1}</span>
+                <button type="button" class="btn-move" onclick="moveItem('educationList', ${index}, -1)" title="Move up" aria-label="Move education up"><i class="fas fa-chevron-up"></i></button>
+                <button type="button" class="btn-move" onclick="moveItem('educationList', ${index}, 1)" title="Move down" aria-label="Move education down"><i class="fas fa-chevron-down"></i></button>
+            </div>
             <button type="button" class="btn-remove" onclick="removeEducation(${index})">
                 <i class="fas fa-trash"></i> Remove
             </button>
         </div>
+        <div draggable="true" class="drag-handle" title="Drag to reorder" aria-label="Drag to reorder"><i class="fas fa-grip-vertical"></i> Drag to reorder</div>
         <div class="form-grid">
             <div class="form-group full-width">
                 <label>Degree/Certificate</label>
@@ -917,21 +1065,30 @@ function renderSkillsList() {
 }
 
 function createSkillItem(skill = {}, index, type) {
-    const div = document.createElement('div');
+    var levelLabels = { 1: 'Familiar', 2: 'Proficient', 3: 'Advanced', 4: 'Expert' };
+    var currentLevel = skill.level || 2;
+    if (typeof currentLevel === 'number' && currentLevel > 4) {
+        if (currentLevel <= 25) currentLevel = 1;
+        else if (currentLevel <= 60) currentLevel = 2;
+        else if (currentLevel <= 85) currentLevel = 3;
+        else currentLevel = 4;
+    }
+    var div = document.createElement('div');
     div.className = 'skill-input-row';
-    div.innerHTML = `
-        <div class="form-group" style="margin: 0;">
-            <input type="text" class="skill-name-${type}" value="${sanitizeHTML(skill.name || '')}" placeholder="Skill Name">
-        </div>
-        <div class="form-group" style="margin: 0;">
-            <input type="range" class="skill-level-${type}" value="${skill.level || 50}" min="0" max="100" 
-                oninput="this.nextElementSibling.textContent = this.value + '%'">
-        </div>
-        <div class="range-value">${skill.level || 50}%</div>
-        <button type="button" class="btn-remove" onclick="removeSkill(this, '${type}')">
-            <i class="fas fa-trash"></i>
-        </button>
-    `;
+    div.innerHTML = '<div class="form-group" style="margin: 0;">' +
+        '<label>Skill Name</label>' +
+        '<input type="text" class="skill-name-' + type + '" value="' + sanitizeHTML(skill.name || '') + '" placeholder="Skill Name">' +
+        '</div>' +
+        '<div class="form-group" style="margin: 0;">' +
+        '<label>Level</label>' +
+        '<select class="skill-level-' + type + '">' +
+        '<option value="1"' + (currentLevel == 1 ? ' selected' : '') + '>Familiar</option>' +
+        '<option value="2"' + (currentLevel == 2 ? ' selected' : '') + '>Proficient</option>' +
+        '<option value="3"' + (currentLevel == 3 ? ' selected' : '') + '>Advanced</option>' +
+        '<option value="4"' + (currentLevel == 4 ? ' selected' : '') + '>Expert</option>' +
+        '</select></div>' +
+        '<button type="button" class="btn-remove" onclick="removeSkill(this, \'' + type + '\')">' +
+        '<i class="fas fa-trash"></i></button>';
     return div;
 }
 
@@ -946,15 +1103,14 @@ function removeSkill(button, type) {
 }
 
 function collectSkillsData(type) {
-    const nameInputs = document.querySelectorAll(`.skill-name-${type}`);
-    const levelInputs = document.querySelectorAll(`.skill-level-${type}`);
-
-    const skills = [];
-    nameInputs.forEach((input, index) => {
+    var nameInputs = document.querySelectorAll('.skill-name-' + type);
+    var levelInputs = document.querySelectorAll('.skill-level-' + type);
+    var skills = [];
+    nameInputs.forEach(function(input, index) {
         if (input.value.trim()) {
             skills.push({
                 name: input.value.trim(),
-                level: parseInt(levelInputs[index].value)
+                level: parseInt(levelInputs[index].value) || 2
             });
         }
     });
@@ -977,11 +1133,16 @@ function createProjectItem(proj = {}, index) {
     div.className = 'dynamic-item';
     div.innerHTML = `
         <div class="item-header">
-            <span class="item-number">Project #${index + 1}</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span class="item-number">Project #${index + 1}</span>
+                <button type="button" class="btn-move" onclick="moveItem('projectsList', ${index}, -1)" title="Move up" aria-label="Move project up"><i class="fas fa-chevron-up"></i></button>
+                <button type="button" class="btn-move" onclick="moveItem('projectsList', ${index}, 1)" title="Move down" aria-label="Move project down"><i class="fas fa-chevron-down"></i></button>
+            </div>
             <button type="button" class="btn-remove" onclick="removeProject(${index})">
                 <i class="fas fa-trash"></i> Remove
             </button>
         </div>
+        <div draggable="true" class="drag-handle" title="Drag to reorder" aria-label="Drag to reorder"><i class="fas fa-grip-vertical"></i> Drag to reorder</div>
         <div class="form-grid">
             <div class="form-group full-width">
                 <label>Project Name</label>

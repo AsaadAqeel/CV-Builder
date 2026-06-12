@@ -50,6 +50,24 @@ function loadCVData() {
             return;
         }
 
+        // Migrate old numeric skill levels to 1-4 scale
+        function migrateSkillLevels(skills) {
+            if (!Array.isArray(skills)) return skills || [];
+            return skills.map(function(s) {
+                var level = s.level;
+                if (typeof level === 'number' && level > 4) {
+                    if (level <= 25) level = 1;
+                    else if (level <= 60) level = 2;
+                    else if (level <= 85) level = 3;
+                    else level = 4;
+                    return Object.assign({}, s, { level: level });
+                }
+                return s;
+            });
+        }
+        if (cvData.technicalSkills) cvData.technicalSkills = migrateSkillLevels(cvData.technicalSkills);
+        if (cvData.softSkills) cvData.softSkills = migrateSkillLevels(cvData.softSkills);
+
         // Apply Design Settings
         if (cvData.design) {
             // Apply Theme
@@ -82,6 +100,19 @@ function loadCVData() {
                 profileImg.closest('.profile-image').style.display = 'block';
             } else if (profileImg) {
                 profileImg.closest('.profile-image').style.display = 'none';
+                // Show initials avatar
+                const heroImage = document.querySelector('.hero-image');
+                if (heroImage && cvData.personal.fullName) {
+                    const existingAvatar = heroImage.querySelector('.initials-avatar');
+                    if (!existingAvatar) {
+                        const initials = cvData.personal.fullName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+                        const avatar = document.createElement('div');
+                        avatar.className = 'initials-avatar';
+                        avatar.textContent = initials;
+                        avatar.setAttribute('aria-label', cvData.personal.fullName + ' initials');
+                        heroImage.appendChild(avatar);
+                    }
+                }
             }
         }
 
@@ -147,6 +178,21 @@ function loadCVData() {
             renderAwards(cvData.awards);
         }
     }
+
+    // Welcome overlay & sample badge logic
+    const hasSavedData = localStorage.getItem('cvData');
+    const welcomeOverlay = document.getElementById('welcomeOverlay');
+    const sampleBadge = document.getElementById('sampleBadge');
+    
+    if (!hasSavedData && !window.EXPORTED_CV_DATA) {
+        // First visit - show welcome overlay
+        if (welcomeOverlay) welcomeOverlay.classList.remove('hidden');
+        if (sampleBadge) sampleBadge.style.display = 'flex';
+    } else {
+        // Has saved data - hide overlay and badge
+        if (welcomeOverlay) welcomeOverlay.classList.add('hidden');
+        if (sampleBadge) sampleBadge.style.display = 'none';
+    }
 }
 
 function renderExperience(experiences) {
@@ -196,41 +242,45 @@ function renderSkills(technicalSkills, softSkills) {
     const container = document.querySelector('.skills-grid');
     if (!container) return;
 
-    const technicalHTML = technicalSkills.length > 0 ? `
-        <div class="skill-category">
-            <h3>Technical Skills</h3>
-            ${technicalSkills.map(skill => `
-                <div class="skill-item">
-                    <div class="skill-info">
-                        <span>${sanitizeHTML(skill.name)}</span>
-                        <span>${skill.level}%</span>
-                    </div>
-                    <div class="skill-bar">
-                        <div class="skill-progress" data-progress="${skill.level}"></div>
-                    </div>
-                </div>
-            `).join('')}
-        </div>
-    ` : '';
+    const skillLevelMap = { 1: 'Familiar', 2: 'Proficient', 3: 'Advanced', 4: 'Expert' };
+    const skillLevelDots = { 1: 1, 2: 2, 3: 3, 4: 4 };
 
-    const softHTML = softSkills.length > 0 ? `
-        <div class="skill-category">
-            <h3>Soft Skills</h3>
-            ${softSkills.map(skill => `
-                <div class="skill-item">
-                    <div class="skill-info">
-                        <span>${sanitizeHTML(skill.name)}</span>
-                        <span>${skill.level}%</span>
-                    </div>
-                    <div class="skill-bar">
-                        <div class="skill-progress" data-progress="${skill.level}"></div>
-                    </div>
-                </div>
-            `).join('')}
-        </div>
-    ` : '';
+    function migrateLevel(level) {
+        if (typeof level === 'number' && level >= 0 && level <= 100) {
+            if (level <= 25) return 1;
+            if (level <= 60) return 2;
+            if (level <= 85) return 3;
+            return 4;
+        }
+        if (typeof level === 'number' && level >= 1 && level <= 4) return level;
+        if (typeof level === 'string') {
+            const s = level.toLowerCase();
+            if (s === 'familiar' || s === 'beginner') return 1;
+            if (s === 'proficient' || s === 'intermediate') return 2;
+            if (s === 'advanced') return 3;
+            if (s === 'expert') return 4;
+        }
+        return 2;
+    }
 
-    container.innerHTML = technicalHTML + softHTML;
+    function renderSkillTags(skills, categoryName) {
+        if (!skills || skills.length === 0) return '';
+        return '<div class="skill-category"><h3>' + categoryName + '</h3><div class="skill-tags">' +
+            skills.map(function(skill) {
+                var level = migrateLevel(skill.level);
+                var dots = '';
+                for (var i = 1; i <= 4; i++) {
+                    dots += '<span class="skill-dot' + (i <= level ? ' filled' : '') + '"></span>';
+                }
+                return '<span class="skill-tag">' + sanitizeHTML(skill.name) +
+                    '<span class="skill-dots">' + dots + '</span></span>';
+            }).join('') +
+            '</div></div>';
+    }
+
+    container.innerHTML =
+        renderSkillTags(technicalSkills, 'Technical Skills') +
+        renderSkillTags(softSkills, 'Soft Skills');
 }
 
 function renderProjects(projects) {
@@ -295,6 +345,14 @@ function renderAwards(awards) {
             </div>
         </div>
     `).join('');
+}
+
+function dismissWelcome() {
+    const overlay = document.getElementById('welcomeOverlay');
+    if (overlay) overlay.classList.add('hidden');
+    // Show sample badge so user knows this is sample data
+    const badge = document.getElementById('sampleBadge');
+    if (badge) badge.style.display = 'flex';
 }
 
 // ===== ANIMATED SKILL BARS =====
@@ -397,13 +455,15 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, observerOptions);
 
-// Observe all cards and sections
-document.querySelectorAll('.experience-card, .education-card, .cert-card, .project-card, .award-card, .skill-item').forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(30px)';
-    el.style.transition = 'all 0.6s ease-out';
-    observer.observe(el);
-});
+// Observe all cards and sections (skip if user prefers reduced motion)
+if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll('.experience-card, .education-card, .cert-card, .project-card, .award-card, .skill-tag').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(30px)';
+        el.style.transition = 'all 0.6s ease-out';
+        observer.observe(el);
+    });
+}
 
 // ===== PARALLAX EFFECT FOR HERO SHAPES =====
 const shapes = document.querySelectorAll('.shape');
@@ -1643,7 +1703,7 @@ function generateCleanA4HTML(cvData) {
         <section style="margin-bottom: 10px;">
             <h2 style="font-size: 11pt; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 3px; margin-bottom: 6px;">Skills</h2>
             <p style="font-size: 10pt; color: #333; margin: 0;">
-                ${[...d.technicalSkills.map(s => s.name), ...d.softSkills.map(s => s.name)].join(', ')}
+                ${[...(d.technicalSkills || []).map(s => s.name), ...(d.softSkills || []).map(s => s.name)].join(', ')}
             </p>
         </section>
         ` : ''}

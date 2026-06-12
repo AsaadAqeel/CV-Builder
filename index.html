@@ -27,6 +27,7 @@
 </head>
 
 <body>
+    <a href="#cv-content" class="skip-to-content">Skip to main content</a>
     <noscript>
         <div style="position: fixed; top: 0; left: 0; right: 0; background: #ef4444; color: white; padding: 20px; text-align: center; z-index: 9999; font-family: system-ui, sans-serif;">
             <strong>JavaScript is required for this application to function properly.</strong> Please enable JavaScript in your browser settings.
@@ -66,7 +67,7 @@
                     <p class="location"><i class="fas fa-map-marker-alt"></i> San Francisco, CA</p>
                     <div class="hero-buttons">
                         <a href="#contact" class="btn btn-primary">Get In Touch</a>
-                        <a href="javascript:void(0)" onclick="exportStaticWebsite()" class="btn btn-secondary" role="button">Export Website</a>
+                        <button type="button" onclick="exportStaticWebsite()" class="btn btn-secondary">Export Website</button>
                     </div>
                 </div>
             </div>
@@ -394,10 +395,7 @@
                                 <span>Node.js</span>
                                 <span>MongoDB</span>
                             </div>
-<div class="project-links">
-                                <a href="javascript:void(0)" class="btn-small" role="button" aria-label="View demo - Coming soon">View Demo</a>
-                                <a href="javascript:void(0)" class="btn-small btn-outline" role="button" aria-label="View source code - Coming soon">Source Code</a>
-                            </div>
+                            <div class="project-links"></div>
                         </div>
                     </div>
 
@@ -414,10 +412,7 @@
                                 <span>TensorFlow</span>
                                 <span>D3.js</span>
                             </div>
-                            <div class="project-links">
-                                <a href="javascript:void(0)" class="btn-small" role="button" aria-label="View demo - Coming soon">View Demo</a>
-                                <a href="javascript:void(0)" class="btn-small btn-outline" role="button" aria-label="View source code - Coming soon">Source Code</a>
-                            </div>
+                            <div class="project-links"></div>
                         </div>
                     </div>
 
@@ -435,10 +430,7 @@
                                 <span>Firebase</span>
                                 <span>Node.js</span>
                             </div>
-                            <div class="project-links">
-                                <a href="javascript:void(0)" class="btn-small" role="button" aria-label="View demo - Coming soon">View Demo</a>
-                                <a href="javascript:void(0)" class="btn-small btn-outline" role="button" aria-label="View source code - Coming soon">Source Code</a>
-                            </div>
+                            <div class="project-links"></div>
                         </div>
                     </div>
                 </div>
@@ -502,6 +494,24 @@
             </div>
         </div>
     </footer>
+
+    <!-- Welcome Overlay for First-Time Visitors -->
+    <div id="welcomeOverlay" class="welcome-overlay" role="dialog" aria-label="Welcome to CV Builder">
+        <div class="welcome-card">
+            <div class="welcome-icon"><i class="fas fa-file-alt"></i></div>
+            <h2>Build your professional CV in minutes</h2>
+            <p class="welcome-subtitle">Free, private, no sign-up required</p>
+            <p class="welcome-desc">Create a polished, recruiter-ready CV with our easy editor. Your data stays in your browser — nothing is uploaded.</p>
+            <div class="welcome-actions">
+                <a href="dashboard.html" class="btn btn-primary btn-large"><i class="fas fa-rocket"></i> Start Building</a>
+                <button type="button" class="btn btn-secondary btn-large" onclick="dismissWelcome()"><i class="fas fa-eye"></i> View Sample CV</button>
+            </div>
+        </div>
+    </div>
+    <!-- Sample Data Badge -->
+    <div id="sampleBadge" class="sample-data-badge" style="display:none;">
+        <i class="fas fa-info-circle"></i> This is sample data — <a href="dashboard.html">Edit CV</a> to make it yours.
+    </div>
 
     <!-- Print Preview Modal -->
     <div id="print-preview-modal" class="modal">
