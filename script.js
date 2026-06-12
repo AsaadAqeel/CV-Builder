@@ -1752,55 +1752,74 @@ function generateCleanA4HTML(cvData) {
  * Export static website - downloads a self-contained index.html with inlined CSS/JS
  */
 async function exportStaticWebsite() {
-    const btn = document.querySelector('.btn-download-pdf');
+    var btn = document.querySelector('.btn-download-pdf');
+    var heroBtn = null;
+    document.querySelectorAll('button[onclick="exportStaticWebsite()"]').forEach(function(b) {
+        if (b !== btn) heroBtn = b;
+    });
+
+    var originalText = btn ? btn.innerHTML : '';
+    var heroOriginalText = heroBtn ? heroBtn.innerHTML : '';
+
     if (btn) {
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
         btn.disabled = true;
     }
+    if (heroBtn) {
+        heroBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+        heroBtn.disabled = true;
+    }
 
     try {
-        const savedData = localStorage.getItem('cvData');
-        const cvDataObj = savedData ? JSON.parse(savedData) : null;
+        var savedData = localStorage.getItem('cvData');
+        if (!savedData) {
+            alert('Please save your CV first before exporting.');
+            return;
+        }
+        var cvDataObj = JSON.parse(savedData);
 
-        const [htmlRes, cssRes, jsRes] = await Promise.all([
+        var responses = await Promise.all([
             fetch('index.html'),
             fetch('style.css'),
             fetch('script.js')
         ]);
 
-        if (!htmlRes.ok) throw new Error('Failed to fetch index.html');
+        if (!responses[0].ok) throw new Error('Failed to fetch index.html');
 
-        let html = await htmlRes.text();
-        const css = await cssRes.text();
-        const js = await jsRes.text();
+        var htmlText = await responses[0].text();
+        var cssText = await responses[1].text();
+        var jsText = await responses[2].text();
+
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(htmlText, 'text/html');
+
+        doc.querySelectorAll('a[href="dashboard.html"]').forEach(function(el) { el.remove(); });
+        doc.querySelectorAll('button[onclick="exportStaticWebsite()"]').forEach(function(el) { el.remove(); });
+        doc.querySelectorAll('#welcomeOverlay').forEach(function(el) { el.remove(); });
+        doc.querySelectorAll('#sampleBadge').forEach(function(el) { el.remove(); });
+        doc.querySelectorAll('#print-preview-modal').forEach(function(el) { el.remove(); });
+
+        var html = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
 
         html = html.replace(
-            /<link rel="stylesheet" href="style.css">/,
-            '<style>\n' + css + '\n</style>'
+            /<link rel="stylesheet" href="style\.css">\s*/g,
+            '<style>\n' + cssText + '\n</style>\n'
         );
 
+        var dataScript = '<script>window.EXPORTED_CV_DATA = ' + JSON.stringify(cvDataObj) + ';<\/script>\n';
         html = html.replace(
             /<script src="script\.js"><\/script>/,
-            '<script>\n' + js + '\n</script>'
+            dataScript + '<script>\n' + jsText + '\n<\/script>'
         );
 
-        html = html.replace(/<a[^>]*href=["']dashboard\.html["'][^>]*>.*?<\/a>/gis, '');
-        html = html.replace(/<button[^>]*onclick="exportStaticWebsite\(\)"[^>]*>.*?<\/button>/gis, '');
-        html = html.replace(/<a[^>]*onclick="exportStaticWebsite\(\)"[^>]*>.*?<\/a>/gis, '');
-
-        if (cvDataObj) {
-            html = html.replace(
-                '</body>',
-                '<script>window.EXPORTED_CV_DATA = ' + JSON.stringify(cvDataObj) + ';</script>\n</body>'
-            );
-        }
-
-        const blob = new Blob([html], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
         a.href = url;
         a.download = 'index.html';
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
     } catch (error) {
@@ -1808,8 +1827,12 @@ async function exportStaticWebsite() {
         alert('Failed to export website. Please try again.');
     } finally {
         if (btn) {
-            btn.innerHTML = '<i class="fas fa-file-export"></i> Export Website';
+            btn.innerHTML = originalText || '<i class="fas fa-file-export"></i> Export Website';
             btn.disabled = false;
+        }
+        if (heroBtn) {
+            heroBtn.innerHTML = heroOriginalText || '<i class="fas fa-file-export"></i> Export Website';
+            heroBtn.disabled = false;
         }
     }
 }

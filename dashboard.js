@@ -1535,10 +1535,10 @@ function calculateStrength() {
 // ============================================
 
 async function exportStaticWebsite() {
-    const allBtns = document.querySelectorAll('button[onclick="exportStaticWebsite()"]');
-    let btn = null;
+    var allBtns = document.querySelectorAll('button[onclick="exportStaticWebsite()"]');
+    var btn = null;
     allBtns.forEach(function(b) { if (b.offsetParent !== null) btn = b; });
-    const originalText = btn ? btn.innerHTML : '';
+    var originalText = btn ? btn.innerHTML : '';
 
     if (btn) {
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
@@ -1546,51 +1546,55 @@ async function exportStaticWebsite() {
     }
 
     try {
-        const savedData = localStorage.getItem('cvData');
+        var savedData = localStorage.getItem('cvData');
         if (!savedData) {
-            alert('No CV data found. Please save your CV first.');
-            throw new Error('No CV data');
+            alert('Please save your CV first before exporting.');
+            return;
         }
+        var cvDataObj = JSON.parse(savedData);
 
-        const cvDataObj = JSON.parse(savedData);
-
-        const [htmlRes, cssRes, jsRes] = await Promise.all([
+        var responses = await Promise.all([
             fetch('index.html'),
             fetch('style.css'),
             fetch('script.js')
         ]);
 
-        if (!htmlRes.ok) throw new Error('Failed to fetch index.html');
+        if (!responses[0].ok) throw new Error('Failed to fetch index.html');
 
-        let html = await htmlRes.text();
-        const css = await cssRes.text();
-        const js = await jsRes.text();
+        var htmlText = await responses[0].text();
+        var cssText = await responses[1].text();
+        var jsText = await responses[2].text();
+
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(htmlText, 'text/html');
+
+        doc.querySelectorAll('a[href="dashboard.html"]').forEach(function(el) { el.remove(); });
+        doc.querySelectorAll('button[onclick="exportStaticWebsite()"]').forEach(function(el) { el.remove(); });
+        doc.querySelectorAll('#welcomeOverlay').forEach(function(el) { el.remove(); });
+        doc.querySelectorAll('#sampleBadge').forEach(function(el) { el.remove(); });
+        doc.querySelectorAll('#print-preview-modal').forEach(function(el) { el.remove(); });
+
+        var html = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
 
         html = html.replace(
-            /<link rel="stylesheet" href="style.css">/,
-            '<style>\n' + css + '\n</style>'
+            /<link rel="stylesheet" href="style\.css">\s*/g,
+            '<style>\n' + cssText + '\n</style>\n'
         );
 
+        var dataScript = '<script>window.EXPORTED_CV_DATA = ' + JSON.stringify(cvDataObj) + ';<\/script>\n';
         html = html.replace(
             /<script src="script\.js"><\/script>/,
-            '<script>\n' + js + '\n</script>'
+            dataScript + '<script>\n' + jsText + '\n<\/script>'
         );
 
-        html = html.replace(/<a[^>]*href=["']dashboard\.html["'][^>]*>.*?<\/a>/gis, '');
-        html = html.replace(/<button[^>]*onclick="exportStaticWebsite\(\)"[^>]*>.*?<\/button>/gis, '');
-        html = html.replace(/<a[^>]*onclick="exportStaticWebsite\(\)"[^>]*>.*?<\/a>/gis, '');
-
-        html = html.replace(
-            '</body>',
-            '<script>window.EXPORTED_CV_DATA = ' + JSON.stringify(cvDataObj) + ';</script>\n</body>'
-        );
-
-        const blob = new Blob([html], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
         a.href = url;
         a.download = 'index.html';
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
     } catch (error) {
@@ -1598,209 +1602,16 @@ async function exportStaticWebsite() {
         alert('Failed to export website. Please try again.');
     } finally {
         if (btn) {
-            btn.innerHTML = originalText;
+            btn.innerHTML = originalText || '<i class="fas fa-file-export"></i> Export Website';
             btn.disabled = false;
         }
     }
 }
 
-// Helper: Process index.html - embed data and remove dashboard links
-function processIndexHTML(html, cvData) {
-    // Remove dashboard link from navigation
-    html = html.replace(/<a[^>]*href=["']dashboard\.html["'][^>]*>.*?<\/a>/gis, '');
-    
-    // Remove dashboard link from Edit CV button (handles the View CV link pattern too)
-    html = html.replace(/<a[^>]*href=["']dashboard\.html["'][^>]*class=["'][^"']*btn-nav[^"']*["'][^>]*>.*?<\/a>/gis, '');
-    
-    // Remove "Download CV" / "Print" button from hero section
-    html = html.replace(/<a[^>]*href=["']javascript:void\(0\)["'][^>]*onclick=["']openPrintPreview[^"]*["'][^>]*>.*?<\/a>/gis, '');
-    html = html.replace(/<a[^>]*onclick=["']window\.print\(\)["'][^>]*>.*?<\/a>/gis, '');
-    
-    // Add embedded data script before closing head tag
-    const dataScript = `
-<script>
-    // Embedded CV Data (Generated by CV Builder)
-    window.EXPORTED_CV_DATA = ${JSON.stringify(cvData, null, 2)};
-<\/script>
-`;
-    html = html.replace('</head>', dataScript + '</head>');
-    
-    // Update title with user's name
-    if (cvData.personal?.fullName) {
-        html = html.replace(
-            /<title>.*?<\/title>/i,
-            `<title>${escapeHtml(cvData.personal.fullName)} - CV</title>`
-        );
-    }
-    
-    return html;
-}
-
-// Helper: Process script.js - remove localStorage dependency and use embedded data
-function processScriptJS(js, cvData) {
-    // Add comment at top
-    const header = `// Generated by CV Builder - Static Export
-// CV Data is embedded in index.html as window.EXPORTED_CV_DATA
-`;
-    
-    // Modify loadCVData to use exported data first
-    const loadFunctionOverride = `
-// Override to use exported data
-(function() {
-    const originalLoadCVData = loadCVData;
-    loadCVData = function() {
-        if (window.EXPORTED_CV_DATA) {
-            const cvData = window.EXPORTED_CV_DATA;
-            // Apply design settings
-            if (cvData.design) {
-                if (cvData.design.theme && cvData.design.theme !== 'default') {
-                    document.body.setAttribute('data-theme', cvData.design.theme);
-                }
-                if (cvData.design.font) {
-                    document.body.style.fontFamily = cvData.design.font;
-                }
-            }
-            // Apply all data
-            applyCVData(cvData);
-        } else {
-            originalLoadCVData();
-        }
-    };
-})();
-`;
-    
-    // Add applyCVData function
-    const applyFunction = `
-function applyCVData(cvData) {
-    // Personal
-    if (cvData.personal) {
-        const nameEl = document.querySelector('.hero-text h1');
-        const titleEl = document.querySelector('.tagline');
-        const locationEl = document.querySelector('.location');
-        const profileImg = document.querySelector('.profile-image img');
-        if (nameEl) nameEl.textContent = cvData.personal.fullName || 'Your Name';
-        if (titleEl) titleEl.textContent = cvData.personal.jobTitle || 'Job Title';
-        if (locationEl) locationEl.innerHTML = '<i class="fas fa-map-marker-alt"></i> ' + (cvData.personal.location || 'Location');
-        if (profileImg && cvData.personal.profileImage) profileImg.src = cvData.personal.profileImage;
-    }
-    // Contact
-    if (cvData.contact) {
-        document.querySelectorAll('.contact-item').forEach(item => {
-            const icon = item.querySelector('i');
-            const span = item.querySelector('span');
-            if (icon && span) {
-                if (icon.classList.contains('fa-phone') && cvData.contact.phone) {
-                    item.href = 'tel:' + cvData.contact.phone;
-                    span.textContent = cvData.contact.phone;
-                }
-                if (icon.classList.contains('fa-envelope') && cvData.contact.email) {
-                    item.href = 'mailto:' + cvData.contact.email;
-                    span.textContent = cvData.contact.email;
-                }
-                if (icon.classList.contains('fa-linkedin') && cvData.contact.linkedin) {
-                    item.href = cvData.contact.linkedin;
-                    span.textContent = cvData.contact.linkedin.replace('https://', '');
-                }
-                if (icon.classList.contains('fa-github') && cvData.contact.github) {
-                    item.href = cvData.contact.github;
-                    span.textContent = cvData.contact.github.replace('https://', '');
-                }
-            }
-        });
-    }
-    // Summary
-    if (cvData.summary) {
-        const el = document.querySelector('.summary-text');
-        if (el) el.textContent = cvData.summary;
-    }
-    // Experience
-    if (cvData.experience && cvData.experience.length > 0) {
-        renderExperience(cvData.experience);
-    }
-    // Education
-    if (cvData.education && cvData.education.length > 0) {
-        renderEducation(cvData.education);
-    }
-    // Skills
-    if (cvData.technicalSkills || cvData.softSkills) {
-        renderSkills(cvData.technicalSkills || [], cvData.softSkills || []);
-    }
-    // Projects
-    if (cvData.projects && cvData.projects.length > 0) {
-        renderProjects(cvData.projects);
-    }
-    // Certifications
-    if (cvData.certifications && cvData.certifications.length > 0) {
-        renderCertifications(cvData.certifications);
-    }
-    // Awards
-    if (cvData.awards && cvData.awards.length > 0) {
-        renderAwards(cvData.awards);
-    }
-}
-`;
-    
-    return header + js + '\n' + applyFunction + '\n' + loadFunctionOverride;
-}
-
-// Helper: Generate README file
-function generateReadme(cvData) {
-    return `=====================================
-CV WEBSITE - STATIC EXPORT
-=====================================
-
-This is a standalone static website generated by CV Builder.
-
-Owner: ${cvData.personal?.fullName || 'Unknown'}
-Generated: ${new Date().toLocaleDateString()}
-
--------------------------------------
-HOW TO USE
--------------------------------------
-
-1. Extract all files to a folder
-2. Open index.html in any web browser
-3. No server required - works offline
-
--------------------------------------
-FILES INCLUDED
--------------------------------------
-
-- index.html     : Main CV page (with embedded data)
-- style.css      : Styles
-- script.js      : Functionality
-- cv-themes.css  : Theme styles (if exists)
-- README.txt     : This file
-
--------------------------------------
-DEPLOYMENT OPTIONS
--------------------------------------
-
-Option 1: GitHub Pages (Free)
-1. Create a GitHub repository
-2. Upload all files
-3. Enable GitHub Pages in Settings
-4. Your CV will be live!
-
-Option 2: Netlify (Free)
-1. Go to netlify.com
-2. Drag and drop the folder
-3. Get instant URL
-
-Option 3: Local
-- Just open index.html in browser
-
--------------------------------------
-Created with CV Builder
-https://github.com/AsaadAqeel/CV-Builder
-=====================================
-`;
-}
-
 // Helper: Escape HTML
 function escapeHtml(text) {
     if (!text) return '';
-    const div = document.createElement('div');
+    var div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
