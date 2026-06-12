@@ -32,6 +32,24 @@ function sanitizeURL(url) {
 
 document.addEventListener('DOMContentLoaded', function () {
     loadCVData();
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            var overlay = document.getElementById('welcomeOverlay');
+            if (overlay && !overlay.classList.contains('hidden')) {
+                dismissWelcome();
+            }
+        }
+    });
+
+    var overlay = document.getElementById('welcomeOverlay');
+    if (overlay) {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                dismissWelcome();
+            }
+        });
+    }
 });
 
 function loadCVData() {
@@ -180,17 +198,24 @@ function loadCVData() {
     }
 
     // Welcome overlay & sample badge logic
-    const hasSavedData = localStorage.getItem('cvData');
-    const welcomeOverlay = document.getElementById('welcomeOverlay');
-    const sampleBadge = document.getElementById('sampleBadge');
+    var hasSavedData = localStorage.getItem('cvData');
+    var welcomeOverlay = document.getElementById('welcomeOverlay');
+    var sampleBadge = document.getElementById('sampleBadge');
+    var dismissed = sessionStorage.getItem('welcomeDismissed');
     
-    if (!hasSavedData && !window.EXPORTED_CV_DATA) {
-        // First visit - show welcome overlay
-        if (welcomeOverlay) welcomeOverlay.classList.remove('hidden');
+    if (!hasSavedData && !window.EXPORTED_CV_DATA && !dismissed) {
+        // First visit (this session) with no saved data - show welcome overlay
+        if (welcomeOverlay) {
+            welcomeOverlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
         if (sampleBadge) sampleBadge.style.display = 'flex';
     } else {
-        // Has saved data - hide overlay and badge
-        if (welcomeOverlay) welcomeOverlay.classList.add('hidden');
+        // Has saved data, or already dismissed, or exported page - hide overlay and badge
+        if (welcomeOverlay) {
+            welcomeOverlay.classList.add('hidden');
+            welcomeOverlay.style.display = 'none';
+        }
         if (sampleBadge) sampleBadge.style.display = 'none';
     }
 }
@@ -348,10 +373,18 @@ function renderAwards(awards) {
 }
 
 function dismissWelcome() {
-    const overlay = document.getElementById('welcomeOverlay');
-    if (overlay) overlay.classList.add('hidden');
-    // Show sample badge so user knows this is sample data
-    const badge = document.getElementById('sampleBadge');
+    var overlay = document.getElementById('welcomeOverlay');
+    if (!overlay) return;
+
+    overlay.classList.add('hidden');
+    document.body.style.overflow = '';
+    sessionStorage.setItem('welcomeDismissed', '1');
+
+    setTimeout(function() {
+        overlay.style.display = 'none';
+    }, 220);
+
+    var badge = document.getElementById('sampleBadge');
     if (badge) badge.style.display = 'flex';
 }
 
