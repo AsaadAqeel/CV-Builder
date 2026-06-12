@@ -1581,11 +1581,18 @@ async function exportStaticWebsite() {
             '<style>\n' + cssText + '\n</style>\n'
         );
 
-        var dataScript = '<script>window.EXPORTED_CV_DATA = ' + JSON.stringify(cvDataObj) + ';<\/script>\n';
+        jsText = jsText.replace(/<\/script>/gi, '<\\/script>');
+
         html = html.replace(
             /<script src="script\.js"><\/script>/,
-            dataScript + '<script>\n' + jsText + '\n<\/script>'
+            '<script>\n' + jsText + '\n</scr' + 'ipt>'
         );
+
+        var lastBody = html.lastIndexOf('</' + 'body>');
+        if (lastBody !== -1) {
+            var dataScript = '<script>window.EXPORTED_CV_DATA = ' + JSON.stringify(cvDataObj) + ';</' + 'script>\n';
+            html = html.substring(0, lastBody) + dataScript + html.substring(lastBody);
+        }
 
         var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
         var url = URL.createObjectURL(blob);
