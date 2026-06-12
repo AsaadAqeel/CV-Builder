@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>السيرة الذاتية</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Cairo', sans-serif;
+      font-size: 11px;
+      line-height: 1.4;
+      overflow: hidden;
+    }
+    .container {
+      width: 210mm;
+      height: 297mm;
+      display: flex;
+      background: #fff;
+    }
+    .sidebar {
+      width: 65mm;
+      background: #2c3e50;
+      color: #fff;
+      padding: 15mm 10mm;
+      display: flex;
+      flex-direction: column;
+      gap: 12mm;
+    }
+    .main-content {
+      flex: 1;
+      padding: 15mm 12mm;
+      display: flex;
+      flex-direction: column;
+      gap: 8mm;
+    }
+    .profile-section {
+      text-align: center;
+    }
+    .avatar-placeholder {
+      width: 40mm;
+      height: 40mm;
+      border-radius: 50%;
+      background: #34495e;
+      margin: 0 auto 8mm;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .name {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 3mm;
+    }
+    .contact-info {
+      font-size: 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 3mm;
+    }
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 3mm;
+    }
+    .sidebar-section {
+      background: #34495e;
+      padding: 6mm 4mm;
+      border-radius: 4px;
+    }
+    .sidebar-title {
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 4mm;
+      padding-bottom: 2mm;
+      border-bottom: 1px solid #4a5f7f;
+    }
+    .skill-item {
+      margin-bottom: 3mm;
+    }
+    .skill-name {
+      font-size: 9px;
+      margin-bottom: 1mm;
+    }
+    .skill-bar {
+      height: 4px;
+      background: #4a5f7f;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .skill-level {
+      height: 100%;
+      background: #3498db;
+      border-radius: 2px;
+    }
+    .sidebar-list {
+      font-size: 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 2mm;
+    }
+    .header-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 2mm;
+    }
+    .section {
+      margin-bottom: 6mm;
+    }
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 4mm;
+      padding-bottom: 2mm;
+      border-bottom: 2px solid #3498db;
+    }
+    .summary-text {
+      font-size: 10px;
+      color: #555;
+      text-align: justify;
+      line-height: 1.6;
+    }
+    .experience-item, .education-item {
+      margin-bottom: 5mm;
+    }
+    .job-title, .degree {
+      font-size: 11px;
+      font-weight: 700;
+      color: #2c3e50;
+    }
+    .company, .institution {
+      font-size: 10px;
+      color: #3498db;
+      margin-bottom: 2mm;
+    }
+    .job-description, .year {
+      font-size: 9px;
+      color: #666;
+    }
+    @media print {
+      body {
+        overflow: hidden;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="profile-section">
+        <div class="name">{{name}}</div>
+        <div class="contact-info">
+          <div class="contact-item">📧 {{email}}</div>
+          <div class="contact-item">📱 {{phone}}</div>
+        </div>
+      </div>
+      
+      <div class="sidebar-section">
+        <div class="sidebar-title">المهارات</div>
+        <div class="sidebar-list">
+          {{#skills}}
+          <div class="skill-item">
+            <div class="skill-name">{{.}}</div>
+            <div class="skill-bar">
+              <div class="skill-level" style="width: 100%"></div>
+            </div>
+          </div>
+          {{/skills}}
+        </div>
+      </div>
+      
+      <div class="sidebar-section">
+        <div class="sidebar-title">اللغات</div>
+        <div class="sidebar-list">
+          {{#languages}}
+          <div>{{.}}</div>
+          {{/languages}}
+        </div>
+      </div>
+    </div>
+    
+    <div class="main-content">
+      <div class="header-name">{{name}}</div>
+      
+      {{#summary}}
+      <div class="section">
+        <div class="section-title">ملخص</div>
+        <div class="summary-text">{{summary}}</div>
+      </div>
+      {{/summary}}
+      
+      {{#experience.length}}
+      <div class="section">
+        <div class="section-title">الخبرة العملية</div>
+        {{#experience}}
+        <div class="experience-item">
+          <div class="job-title">{{jobTitle}}</div>
+          <div class="company">{{company}}</div>
+          <div class="job-description">{{description}}</div>
+        </div>
+        {{/experience}}
+      </div>
+      {{/experience.length}}
+      
+      {{#education.length}}
+      <div class="section">
+        <div class="section-title">التعليم</div>
+        {{#education}}
+        <div class="education-item">
+          <div class="degree">{{degree}}</div>
+          <div class="institution">{{institution}}</div>
+          <div class="year">{{year}}</div>
+        </div>
+        {{/education}}
+      </div>
+      {{/education.length}}
+    </div>
+  </div>
+</body>
+</html>

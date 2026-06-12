@@ -1,0 +1,13 @@
+{
+  "name": "cv-pdf-generator",
+  "version": "1.0.0",
+  "description": "Backend service for generating A4 CV PDFs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "puppeteer": "^24.37.2"
+  }
+}
