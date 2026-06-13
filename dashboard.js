@@ -1410,37 +1410,6 @@ function collectAwardsData() {
 }
 
 // ===== DATA PERSISTENCE =====
-function exportData() {
-    const dataStr = JSON.stringify(cvData, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-
-    const exportFileDefaultName = 'cv-builder-backup.json';
-
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-}
-
-function importData(input) {
-    const file = input.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        try {
-            const contents = e.target.result;
-            cvData = JSON.parse(contents);
-            saveAllData(); // Save to local storage
-            populateForm(); // Refresh UI
-            alert('Data imported successfully!');
-        } catch (err) {
-            alert('Error importing data: ' + err.message);
-        }
-    };
-    reader.readAsText(file);
-    input.value = ''; // Reset input
-}
 
 // ===== LIVE PREVIEW =====
 function togglePreview() {

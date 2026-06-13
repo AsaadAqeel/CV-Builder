@@ -812,46 +812,6 @@
     }
 }
 
-/* ===== BACKUP BANNER ===== */
-.backup-banner {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(59, 130, 246, 0.15));
-    border: 1px solid rgba(124, 58, 237, 0.3);
-    border-radius: 12px;
-    padding: 14px 20px;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: #d1d5db;
-    font-size: 14px;
-}
-.backup-banner i {
-    color: #7c3aed;
-    font-size: 18px;
-}
-.backup-banner a {
-    color: #a78bfa;
-    text-decoration: underline;
-    font-weight: 600;
-}
-.backup-banner a:hover {
-    color: #c4b5fd;
-}
-.backup-dismiss {
-    margin-left: auto;
-    background: none;
-    border: none;
-    color: #9ca3af;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
-}
-.backup-dismiss:hover {
-    background: rgba(255,255,255,0.1);
-    color: white;
-}
-
 /* ===== OPTIONAL HINT ===== */
 .optional-hint {
     color: #9ca3af;

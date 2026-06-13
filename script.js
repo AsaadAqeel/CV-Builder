@@ -267,9 +267,6 @@ function renderSkills(technicalSkills, softSkills) {
     const container = document.querySelector('.skills-grid');
     if (!container) return;
 
-    const skillLevelMap = { 1: 'Familiar', 2: 'Proficient', 3: 'Advanced', 4: 'Expert' };
-    const skillLevelDots = { 1: 1, 2: 2, 3: 3, 4: 4 };
-
     function migrateLevel(level) {
         if (typeof level === 'number' && level >= 0 && level <= 100) {
             if (level <= 25) return 1;
@@ -297,8 +294,9 @@ function renderSkills(technicalSkills, softSkills) {
                 for (var i = 1; i <= 4; i++) {
                     dots += '<span class="skill-dot' + (i <= level ? ' filled' : '') + '"></span>';
                 }
-                return '<span class="skill-tag">' + sanitizeHTML(skill.name) +
-                    '<span class="skill-dots">' + dots + '</span></span>';
+                return '<span class="skill-chip" aria-label="' + sanitizeHTML(skill.name) + ', level ' + level + ' of 4">' +
+                    '<span class="skill-chip-name">' + sanitizeHTML(skill.name) + '</span>' +
+                    '<span class="skill-chip-dots">' + dots + '</span></span>';
             }).join('') +
             '</div></div>';
     }
