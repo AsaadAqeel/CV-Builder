@@ -2838,8 +2838,10 @@ body.printing .experience-card::before {
         border-radius: 4px;
         font-size: 10pt;
     }
-    .skill-chip-dots .skill-dot {
-        display: none !important;
+    .skill-chip-sep,
+    .skill-chip-level {
+        color: #555 !important;
+        opacity: 1 !important;
     }
 
     /* Single column layout */
@@ -3523,7 +3525,7 @@ select:focus-visible {
 .skill-chip {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 0;
     background: rgba(124, 58, 237, 0.12);
     border: 1px solid rgba(124, 58, 237, 0.25);
     color: var(--white);
@@ -3532,6 +3534,7 @@ select:focus-visible {
     font-size: 14px;
     font-weight: 500;
     cursor: default;
+    white-space: nowrap;
     transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 }
 .skill-chip:hover {
@@ -3542,19 +3545,15 @@ select:focus-visible {
 .skill-chip-name {
     white-space: nowrap;
 }
-.skill-chip-dots {
-    display: inline-flex;
-    gap: 3px;
+.skill-chip-sep {
+    opacity: 0.4;
+    margin: 0 2px;
 }
-.skill-chip-dots .skill-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: rgba(124, 58, 237, 0.3);
-    transition: background 0.15s ease;
-}
-.skill-chip-dots .skill-dot.filled {
-    background: var(--violet);
+.skill-chip-level {
+    font-size: 12px;
+    font-weight: 500;
+    opacity: 0.7;
+    white-space: nowrap;
 }
 
 /* Legacy skill-tag aliases for print/export compatibility */

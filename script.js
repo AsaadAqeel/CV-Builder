@@ -267,6 +267,8 @@ function renderSkills(technicalSkills, softSkills) {
     const container = document.querySelector('.skills-grid');
     if (!container) return;
 
+    var levelLabels = { 1: 'Familiar', 2: 'Proficient', 3: 'Advanced', 4: 'Expert' };
+
     function migrateLevel(level) {
         if (typeof level === 'number' && level >= 0 && level <= 100) {
             if (level <= 25) return 1;
@@ -276,7 +278,7 @@ function renderSkills(technicalSkills, softSkills) {
         }
         if (typeof level === 'number' && level >= 1 && level <= 4) return level;
         if (typeof level === 'string') {
-            const s = level.toLowerCase();
+            var s = level.toLowerCase();
             if (s === 'familiar' || s === 'beginner') return 1;
             if (s === 'proficient' || s === 'intermediate') return 2;
             if (s === 'advanced') return 3;
@@ -290,13 +292,11 @@ function renderSkills(technicalSkills, softSkills) {
         return '<div class="skill-category"><h3>' + categoryName + '</h3><div class="skill-tags">' +
             skills.map(function(skill) {
                 var level = migrateLevel(skill.level);
-                var dots = '';
-                for (var i = 1; i <= 4; i++) {
-                    dots += '<span class="skill-dot' + (i <= level ? ' filled' : '') + '"></span>';
-                }
-                return '<span class="skill-chip" aria-label="' + sanitizeHTML(skill.name) + ', level ' + level + ' of 4">' +
+                var label = levelLabels[level] || '';
+                var labelHtml = label ? '<span class="skill-chip-sep"> · </span><span class="skill-chip-level">' + label + '</span>' : '';
+                return '<span class="skill-chip" aria-label="' + sanitizeHTML(skill.name) + ', ' + label + '">' +
                     '<span class="skill-chip-name">' + sanitizeHTML(skill.name) + '</span>' +
-                    '<span class="skill-chip-dots">' + dots + '</span></span>';
+                    labelHtml + '</span>';
             }).join('') +
             '</div></div>';
     }
