@@ -294,7 +294,7 @@ function renderSkills(technicalSkills, softSkills) {
                 var level = migrateLevel(skill.level);
                 var label = levelLabels[level] || '';
                 var labelHtml = label ? '<span class="skill-chip-sep"> · </span><span class="skill-chip-level">' + label + '</span>' : '';
-                return '<span class="skill-chip" aria-label="' + sanitizeHTML(skill.name) + ', ' + label + '">' +
+                return '<span class="skill-chip" data-level="' + level + '" aria-label="' + sanitizeHTML(skill.name) + ', ' + label + '">' +
                     '<span class="skill-chip-name">' + sanitizeHTML(skill.name) + '</span>' +
                     labelHtml + '</span>';
             }).join('') +

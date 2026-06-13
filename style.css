@@ -2831,6 +2831,7 @@ body.printing .experience-card::before {
         gap: 6px;
     }
     .skill-chip {
+        --chip: #666;
         background: #f0f0f0 !important;
         border: 1px solid #999 !important;
         color: #000 !important;
@@ -2838,9 +2839,12 @@ body.printing .experience-card::before {
         border-radius: 4px;
         font-size: 10pt;
     }
-    .skill-chip-sep,
-    .skill-chip-level {
+    .skill-chip-sep {
         color: #555 !important;
+        opacity: 1 !important;
+    }
+    .skill-chip-level {
+        color: #333 !important;
         opacity: 1 !important;
     }
 
@@ -3520,39 +3524,44 @@ select:focus-visible {
 .skill-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px;
 }
 .skill-chip {
+    --chip: rgba(124, 58, 237, 0.5);
+    --chip-bg: rgba(124, 58, 237, 0.1);
     display: inline-flex;
     align-items: center;
     gap: 0;
-    background: rgba(124, 58, 237, 0.12);
-    border: 1px solid rgba(124, 58, 237, 0.25);
+    background: var(--chip-bg);
+    border: 1.5px solid var(--chip);
     color: var(--white);
-    padding: 8px 14px;
+    padding: 12px 20px;
     border-radius: 999px;
-    font-size: 14px;
-    font-weight: 500;
     cursor: default;
     white-space: nowrap;
-    transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .skill-chip:hover {
     transform: translateY(-2px);
-    background: rgba(124, 58, 237, 0.22);
-    border-color: var(--violet);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
+.skill-chip[data-level="1"] { --chip: #9ca3af; --chip-bg: rgba(156, 163, 175, 0.1); }
+.skill-chip[data-level="2"] { --chip: #3b82f6; --chip-bg: rgba(59, 130, 246, 0.1); }
+.skill-chip[data-level="3"] { --chip: #8b5cf6; --chip-bg: rgba(139, 92, 246, 0.1); }
+.skill-chip[data-level="4"] { --chip: #10b981; --chip-bg: rgba(16, 185, 129, 0.1); }
 .skill-chip-name {
+    font-size: 1rem;
+    font-weight: 600;
     white-space: nowrap;
 }
 .skill-chip-sep {
     opacity: 0.4;
-    margin: 0 2px;
+    margin: 0 4px;
 }
 .skill-chip-level {
-    font-size: 12px;
+    font-size: 0.8rem;
     font-weight: 500;
-    opacity: 0.7;
+    color: var(--chip);
     white-space: nowrap;
 }
 
