@@ -1682,6 +1682,92 @@ section {
     color: white;
 }
 
+.file-preview-img {
+    width: 100%;
+    max-height: 180px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid rgba(124, 58, 237, 0.3);
+    margin-top: 10px;
+    display: block;
+}
+.file-preview-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 12px 16px;
+    background: rgba(124, 58, 237, 0.08);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    border-radius: 12px;
+}
+.file-preview-card i.fa-file-pdf {
+    font-size: 28px;
+    color: #ef4444;
+    flex-shrink: 0;
+}
+.file-preview-card .pdf-meta {
+    flex: 1;
+    min-width: 0;
+}
+.file-preview-card .pdf-name {
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+.file-preview-card .pdf-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.file-preview-card .pdf-actions a {
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #7c3aed, #3b82f6);
+    color: #fff;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+}
+.pdf-viewer-wrap {
+    margin-top: 10px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    background: #fff;
+}
+.pdf-viewer-wrap iframe,
+.pdf-viewer-wrap object {
+    width: 100%;
+    height: 260px;
+    border: none;
+    display: block;
+}
+.company-logo-preview {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #fff;
+    padding: 4px;
+    border: 1px solid rgba(124, 58, 237, 0.2);
+}
+.cert-preview-img,
+.edu-preview-img,
+.award-preview-img {
+    width: 100%;
+    max-height: 200px;
+    object-fit: contain;
+    border-radius: 10px;
+    margin-top: 10px;
+    background: #fff;
+    padding: 4px;
+}
+
 /* ===== THEMES ===== */
 /* ===== THEMES ===== */
 body[data-theme="blue"],

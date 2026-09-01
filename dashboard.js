@@ -22,19 +22,65 @@ function sanitizeHTML(str) {
  */
 function sanitizeURL(url) {
     if (typeof url !== 'string') return '';
-    const allowedProtocols = ['http:', 'https:', 'mailto:', 'tel:'];
+    if (url.startsWith('data:image/') || url.startsWith('data:application/pdf')) return url;
+    if (url.startsWith('blob:')) return url;
+    const allowedProtocols = ['http:', 'https:', 'mailto:', 'tel:', 'blob:', 'data:'];
     try {
         const parsed = new URL(url, window.location.origin);
         if (allowedProtocols.includes(parsed.protocol)) {
             return parsed.href;
         }
     } catch (e) {
-        // If URL parsing fails, check if it's a relative URL or tel:/mailto:
-        if (url.match(/^(mailto:|tel:)/i)) {
+        if (url.match(/^(mailto:|tel:|blob:|data:)/i)) {
             return url;
         }
     }
     return '';
+}
+const objectUrlRegistry = new Map();
+function createObjectURL(file) {
+    const url = URL.createObjectURL(file);
+    return url;
+}
+function revokeObjectURL(url) {
+    if (url && url.startsWith('blob:')) {
+        try { URL.revokeObjectURL(url); } catch(e) {}
+    }
+}
+function isImageFile(fileOrName) {
+    const type = (fileOrName && fileOrName.type) || '';
+    if (type.startsWith('image/')) return true;
+    const name = (typeof fileOrName === 'string' ? fileOrName : fileOrName.name || '').toLowerCase();
+    return /\.(png|jpe?g|gif|webp|svg)$/.test(name);
+}
+function isPdfFile(fileOrName) {
+    const type = (fileOrName && fileOrName.type) || '';
+    if (type === 'application/pdf') return true;
+    const name = (typeof fileOrName === 'string' ? fileOrName : fileOrName.name || '').toLowerCase();
+    return /\.pdf$/.test(name);
+}
+function renderDashboardFilePreview(input, url, file) {
+    let preview = input.parentElement.querySelector('.file-inline-preview');
+    if (!preview) {
+        preview = document.createElement('div');
+        preview.className = 'file-inline-preview';
+        input.insertAdjacentElement('afterend', preview);
+        preview.insertAdjacentElement('afterend', preview.nextSibling);
+        input.parentElement.appendChild(preview);
+    }
+    const safeUrl = sanitizeURL(url);
+    const safeName = sanitizeHTML(file.name);
+    if (isImageFile(file)) {
+        preview.innerHTML = '<img src="' + safeUrl + '" alt="' + safeName + '"> <div class="pdf-mini-card"><i class="fas fa-image"></i><span>' + safeName + '</span> <a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">Open</a></div>';
+    } else if (isPdfFile(file)) {
+        preview.innerHTML = '<div class="pdf-mini-card"><i class="fas fa-file-pdf"></i><span>' + safeName + '</span> <a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">Open</a> <a href="' + safeUrl + '" download="' + safeName + '">Download</a></div><iframe src="' + safeUrl + '" title="' + safeName + '"></iframe>';
+    } else {
+        preview.innerHTML = '<div class="pdf-mini-card"><i class="fas fa-file"></i><span>' + safeName + '</span> <a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">Open</a></div>';
+    }
+    const status = input.nextElementSibling;
+    if (status && status.classList.contains('file-status')) {
+        status.textContent = 'File selected: ' + file.name;
+    }
 }
 
 // ===== INPUT VALIDATION =====
@@ -439,37 +485,33 @@ function setupDesign() {
 
 // ===== IMAGE UPLOAD HANDLING =====
 let currentProfileImage = '';
+let currentProfileImageObjectUrl = null;
 
 function setupImageUpload() {
     const fileInput = document.getElementById('profileImage');
     if (!fileInput) return;
 
-    fileInput.addEventListener('change', function (e) {
-        const file = e.target.files[0];
-        if (file) {
-            // Validate file type
-            if (!file.type.startsWith('image/')) {
-                alert('Please select an image file (JPG, PNG, or GIF)');
-                return;
-            }
-
-            // Validate file size (max 5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                alert('Image size should be less than 5MB');
-                return;
-            }
-
-            // Convert to base64
-            const reader = new FileReader();
-            reader.onload = function (event) {
-                currentProfileImage = event.target.result;
-                updateImagePreview(currentProfileImage);
-            };
-            reader.onerror = function () {
-                alert('Error reading image file. Please try again.');
-            };
-            reader.readAsDataURL(file);
+    fileInput.addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file (JPG, PNG, or GIF)');
+            return;
         }
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Image size should be less than 5MB');
+            return;
+        }
+        if (currentProfileImageObjectUrl) revokeObjectURL(currentProfileImageObjectUrl);
+        const objectUrl = createObjectURL(file);
+        currentProfileImageObjectUrl = objectUrl;
+        currentProfileImage = objectUrl;
+        cvData.personal.profileImage = objectUrl;
+        cvData.personal.profileImageName = file.name;
+        cvData.personal.profileImageType = file.type;
+        updateImagePreview(objectUrl);
+        localStorage.setItem('cvData', JSON.stringify(cvData));
+        updatePreview();
     });
 }
 
@@ -481,10 +523,17 @@ function updateImagePreview(imageSrc) {
 }
 
 function removeProfileImage() {
+    if (currentProfileImageObjectUrl) revokeObjectURL(currentProfileImageObjectUrl);
+    currentProfileImageObjectUrl = null;
     currentProfileImage = '';
+    cvData.personal.profileImage = '';
+    cvData.personal.profileImageName = '';
+    cvData.personal.profileImageType = '';
     const fileInput = document.getElementById('profileImage');
     if (fileInput) fileInput.value = '';
     updateImagePreview('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop');
+    localStorage.setItem('cvData', JSON.stringify(cvData));
+    updatePreview();
 }
 
 // Load data from localStorage or use defaults
@@ -824,6 +873,9 @@ function renderExperienceList() {
 function createExperienceItem(exp = {}, index) {
     const div = document.createElement('div');
     div.className = 'dynamic-item';
+    const logoUrl = exp.logo || exp.companyLogo || exp.file || '';
+    const logoName = exp.logoName || exp.fileName || '';
+    const logoType = exp.logoType || exp.fileType || '';
     div.innerHTML = `
         <div class="item-header">
             <div style="display:flex;align-items:center;gap:8px;">
@@ -852,6 +904,13 @@ function createExperienceItem(exp = {}, index) {
             <div class="form-group">
                 <label>End Date</label>
                 <input type="text" class="exp-end" value="${sanitizeHTML(exp.endDate || '')}" placeholder="Present">
+            </div>
+            <div class="form-group full-width">
+                <label>Company Logo (PNG/JPG)</label>
+                <input type="file" class="exp-logo" accept="image/*" onchange="handleExperienceLogoUpload(event)" ${logoUrl ? 'data-file="' + logoUrl + '" data-file-name="' + sanitizeHTML(logoName) + '" data-file-type="' + sanitizeHTML(logoType) + '"' : ''}>
+                <span class="file-status" style="font-size: 0.85rem; color: #9ca3af; display: block; margin-top: 5px;">
+                    ${logoUrl ? 'File: ' + sanitizeHTML(logoName || 'logo') : 'No file selected'}
+                </span>
             </div>
             <div class="form-group full-width">
                 <label>Key Achievements</label>
@@ -935,13 +994,19 @@ function collectExperienceData() {
                 achievements.push(input.value.trim());
             }
         });
-
+        const logoInput = item.querySelector('.exp-logo');
         return {
             company: item.querySelector('.exp-company').value,
             role: item.querySelector('.exp-role').value,
             startDate: item.querySelector('.exp-start').value,
             endDate: item.querySelector('.exp-end').value,
-            achievements: achievements
+            achievements: achievements,
+            logo: logoInput ? logoInput.getAttribute('data-file') : null,
+            logoName: logoInput ? logoInput.getAttribute('data-file-name') : null,
+            logoType: logoInput ? logoInput.getAttribute('data-file-type') : null,
+            file: logoInput ? logoInput.getAttribute('data-file') : null,
+            fileName: logoInput ? logoInput.getAttribute('data-file-name') : null,
+            fileType: logoInput ? logoInput.getAttribute('data-file-type') : null
         };
     });
 }
@@ -957,23 +1022,25 @@ function renderEducationList() {
     });
 }
 
-function handleEduFileUpload(input) {
-    const file = input.files[0];
-    if (file) {
-        if (file.size > 5 * 1024 * 1024) {
-            alert('File size too large. Max 5MB.');
-            input.value = '';
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            input.setAttribute('data-file', e.target.result);
-            const statusSpan = input.nextElementSibling;
-            if (statusSpan) statusSpan.textContent = 'File selected: ' + file.name;
-        };
-        reader.readAsDataURL(file);
+function handleEduFileUpload(eventOrInput) {
+    const input = eventOrInput.target ? eventOrInput.target : eventOrInput;
+    const file = (eventOrInput.target ? eventOrInput.target.files[0] : eventOrInput.files[0]);
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+        alert('File size too large. Max 5MB.');
+        input.value = '';
+        return;
     }
+    const prevUrl = input.getAttribute('data-file');
+    if (prevUrl) revokeObjectURL(prevUrl);
+    const objectUrl = URL.createObjectURL(file);
+    input.setAttribute('data-file', objectUrl);
+    input.setAttribute('data-file-name', file.name);
+    input.setAttribute('data-file-type', file.type);
+    renderDashboardFilePreview(input, objectUrl, file);
+    collectFormData();
+    localStorage.setItem('cvData', JSON.stringify(cvData));
+    updatePreview();
 }
 
 function createEducationItem(edu = {}, index) {
@@ -1010,9 +1077,9 @@ function createEducationItem(edu = {}, index) {
             </div>
             <div class="form-group full-width">
                 <label>Degree File (Image/PDF)</label>
-                <input type="file" accept="image/*,.pdf" onchange="handleEduFileUpload(this)" ${edu.file ? 'data-file="' + edu.file + '"' : ''}>
+                <input type="file" accept="image/*,.pdf" onchange="handleEduFileUpload(event)" ${edu.file ? 'data-file="' + edu.file + '" data-file-name="' + sanitizeHTML(edu.fileName || '') + '" data-file-type="' + sanitizeHTML(edu.fileType || '') + '"' : ''}>
                 <span class="file-status" style="font-size: 0.85rem; color: #9ca3af; display: block; margin-top: 5px;">
-                    ${edu.file ? 'File currently uploaded' : 'No file selected'}
+                    ${edu.file ? 'File: ' + sanitizeHTML(edu.fileName || 'uploaded') : 'No file selected'}
                 </span>
             </div>
         </div>
@@ -1038,13 +1105,17 @@ function removeEducation(index) {
 
 function collectEducationData() {
     const items = document.querySelectorAll('#educationList .dynamic-item');
-    return Array.from(items).map(item => ({
+    return Array.from(items).map(item => {
+        const inp = item.querySelector('input[type="file"]');
+        return {
         degree: item.querySelector('.edu-degree').value,
         institution: item.querySelector('.edu-institution').value,
         graduationDate: item.querySelector('.edu-date').value,
         gpa: item.querySelector('.edu-gpa').value,
-        file: item.querySelector('input[type="file"]').getAttribute('data-file') || null
-    }));
+        file: inp ? inp.getAttribute('data-file') : null,
+        fileName: inp ? inp.getAttribute('data-file-name') : null,
+        fileType: inp ? inp.getAttribute('data-file-type') : null
+    }});
 }
 
 // ===== SKILLS MANAGEMENT =====
@@ -1131,6 +1202,9 @@ function renderProjectsList() {
 function createProjectItem(proj = {}, index) {
     const div = document.createElement('div');
     div.className = 'dynamic-item';
+    const projFile = proj.file || proj.image || '';
+    const projFileName = proj.fileName || proj.imageName || '';
+    const projFileType = proj.fileType || proj.imageType || '';
     div.innerHTML = `
         <div class="item-header">
             <div style="display:flex;align-items:center;gap:8px;">
@@ -1159,6 +1233,11 @@ function createProjectItem(proj = {}, index) {
             <div class="form-group">
                 <label>Source Code URL</label>
                 <input type="url" class="proj-code" value="${sanitizeHTML(proj.codeUrl || '')}" placeholder="https://github.com">
+            </div>
+            <div class="form-group full-width">
+                <label>Project Image / Logo (PNG/JPG/PDF)</label>
+                <input type="file" class="proj-file" accept="image/*,.pdf" onchange="handleProjectImageUpload(event)" ${projFile ? 'data-file="' + projFile + '" data-file-name="' + sanitizeHTML(projFileName) + '" data-file-type="' + sanitizeHTML(projFileType) + '"' : ''}>
+                <span class="file-status" style="font-size: 0.85rem; color: #9ca3af; display: block; margin-top: 5px;">${projFile ? 'File: ' + sanitizeHTML(projFileName || 'uploaded') : 'No file selected'}</span>
             </div>
             <div class="form-group full-width">
                 <label>Technologies Used (press Enter to add)</label>
@@ -1218,13 +1297,19 @@ function collectProjectsData() {
         item.querySelectorAll('.tech-tag').forEach(tag => {
             technologies.push(tag.textContent.trim());
         });
-
+        const inp = item.querySelector('.proj-file');
         return {
             name: item.querySelector('.proj-name').value,
             description: item.querySelector('.proj-desc').value,
             demoUrl: item.querySelector('.proj-demo').value,
             codeUrl: item.querySelector('.proj-code').value,
-            technologies: technologies
+            technologies: technologies,
+            file: inp ? inp.getAttribute('data-file') : null,
+            fileName: inp ? inp.getAttribute('data-file-name') : null,
+            fileType: inp ? inp.getAttribute('data-file-type') : null,
+            image: inp ? inp.getAttribute('data-file') : null,
+            imageName: inp ? inp.getAttribute('data-file-name') : null,
+            imageType: inp ? inp.getAttribute('data-file-type') : null
         };
     });
 }
@@ -1240,23 +1325,25 @@ function renderCertificationsList() {
     });
 }
 
-function handleCertFileUpload(input) {
-    const file = input.files[0];
-    if (file) {
-        if (file.size > 5 * 1024 * 1024) {
-            alert('File size too large. Max 5MB.');
-            input.value = '';
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            input.setAttribute('data-file', e.target.result);
-            const statusSpan = input.nextElementSibling;
-            if (statusSpan) statusSpan.textContent = 'File selected: ' + file.name;
-        };
-        reader.readAsDataURL(file);
+function handleCertFileUpload(eventOrInput) {
+    const input = eventOrInput.target ? eventOrInput.target : eventOrInput;
+    const file = (eventOrInput.target ? eventOrInput.target.files[0] : eventOrInput.files[0]);
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+        alert('File size too large. Max 5MB.');
+        input.value = '';
+        return;
     }
+    const prevUrl = input.getAttribute('data-file');
+    if (prevUrl) revokeObjectURL(prevUrl);
+    const objectUrl = URL.createObjectURL(file);
+    input.setAttribute('data-file', objectUrl);
+    input.setAttribute('data-file-name', file.name);
+    input.setAttribute('data-file-type', file.type);
+    renderDashboardFilePreview(input, objectUrl, file);
+    collectFormData();
+    localStorage.setItem('cvData', JSON.stringify(cvData));
+    updatePreview();
 }
 
 function createCertificationItem(cert = {}, index) {
@@ -1284,9 +1371,9 @@ function createCertificationItem(cert = {}, index) {
             </div>
             <div class="form-group full-width">
                 <label>Certificate File (Image/PDF)</label>
-                <input type="file" accept="image/*,.pdf" onchange="handleCertFileUpload(this)" ${cert.file ? 'data-file="' + cert.file + '"' : ''}>
+                <input type="file" accept="image/*,.pdf" onchange="handleCertFileUpload(event)" ${cert.file ? 'data-file="' + cert.file + '" data-file-name="' + sanitizeHTML(cert.fileName || '') + '" data-file-type="' + sanitizeHTML(cert.fileType || '') + '"' : ''}>
                 <span class="file-status" style="font-size: 0.85rem; color: #9ca3af; display: block; margin-top: 5px;">
-                    ${cert.file ? 'File currently uploaded' : 'No file selected'}
+                    ${cert.file ? 'File: ' + sanitizeHTML(cert.fileName || 'uploaded') : 'No file selected'}
                 </span>
             </div>
         </div>
@@ -1311,12 +1398,16 @@ function removeCertification(index) {
 
 function collectCertificationsData() {
     const items = document.querySelectorAll('#certificationsList .dynamic-item');
-    return Array.from(items).map(item => ({
+    return Array.from(items).map(item => {
+        const inp = item.querySelector('input[type="file"]');
+        return {
         name: item.querySelector('.cert-name').value,
         organization: item.querySelector('.cert-org').value,
         year: item.querySelector('.cert-year').value,
-        file: item.querySelector('input[type="file"]').getAttribute('data-file') || null
-    }));
+        file: inp ? inp.getAttribute('data-file') : null,
+        fileName: inp ? inp.getAttribute('data-file-name') : null,
+        fileType: inp ? inp.getAttribute('data-file-type') : null
+    }});
 }
 
 // ===== AWARDS MANAGEMENT =====
@@ -1330,23 +1421,53 @@ function renderAwardsList() {
     });
 }
 
-function handleAwardFileUpload(input) {
-    const file = input.files[0];
-    if (file) {
-        if (file.size > 5 * 1024 * 1024) {
-            alert('File size too large. Max 5MB.');
-            input.value = '';
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            input.setAttribute('data-file', e.target.result);
-            const statusSpan = input.nextElementSibling;
-            if (statusSpan) statusSpan.textContent = 'File selected: ' + file.name;
-        };
-        reader.readAsDataURL(file);
+function handleAwardFileUpload(eventOrInput) {
+    const input = eventOrInput.target ? eventOrInput.target : eventOrInput;
+    const file = (eventOrInput.target ? eventOrInput.target.files[0] : eventOrInput.files[0]);
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+        alert('File size too large. Max 5MB.');
+        input.value = '';
+        return;
     }
+    const prevUrl = input.getAttribute('data-file');
+    if (prevUrl) revokeObjectURL(prevUrl);
+    const objectUrl = URL.createObjectURL(file);
+    input.setAttribute('data-file', objectUrl);
+    input.setAttribute('data-file-name', file.name);
+    input.setAttribute('data-file-type', file.type);
+    renderDashboardFilePreview(input, objectUrl, file);
+    collectFormData();
+    localStorage.setItem('cvData', JSON.stringify(cvData));
+    updatePreview();
+}
+function handleExperienceLogoUpload(eventOrInput) {
+    const input = eventOrInput.target ? eventOrInput.target : eventOrInput;
+    const file = (eventOrInput.target ? eventOrInput.target.files[0] : eventOrInput.files[0]);
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { alert('File size too large. Max 5MB.'); input.value=''; return; }
+    const prevUrl = input.getAttribute('data-file');
+    if (prevUrl) revokeObjectURL(prevUrl);
+    const objectUrl = URL.createObjectURL(file);
+    input.setAttribute('data-file', objectUrl);
+    input.setAttribute('data-file-name', file.name);
+    input.setAttribute('data-file-type', file.type);
+    renderDashboardFilePreview(input, objectUrl, file);
+    collectFormData(); localStorage.setItem('cvData', JSON.stringify(cvData)); updatePreview();
+}
+function handleProjectImageUpload(eventOrInput) {
+    const input = eventOrInput.target ? eventOrInput.target : eventOrInput;
+    const file = (eventOrInput.target ? eventOrInput.target.files[0] : eventOrInput.files[0]);
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { alert('File size too large. Max 5MB.'); input.value=''; return; }
+    const prevUrl = input.getAttribute('data-file');
+    if (prevUrl) revokeObjectURL(prevUrl);
+    const objectUrl = URL.createObjectURL(file);
+    input.setAttribute('data-file', objectUrl);
+    input.setAttribute('data-file-name', file.name);
+    input.setAttribute('data-file-type', file.type);
+    renderDashboardFilePreview(input, objectUrl, file);
+    collectFormData(); localStorage.setItem('cvData', JSON.stringify(cvData)); updatePreview();
 }
 
 function createAwardItem(award = {}, index) {
@@ -1374,9 +1495,9 @@ function createAwardItem(award = {}, index) {
             </div>
             <div class="form-group full-width">
                 <label>Award File (Image/PDF)</label>
-                <input type="file" accept="image/*,.pdf" onchange="handleAwardFileUpload(this)" ${award.file ? 'data-file="' + award.file + '"' : ''}>
+                <input type="file" accept="image/*,.pdf" onchange="handleAwardFileUpload(event)" ${award.file ? 'data-file="' + award.file + '" data-file-name="' + sanitizeHTML(award.fileName || '') + '" data-file-type="' + sanitizeHTML(award.fileType || '') + '"' : ''}>
                 <span class="file-status" style="font-size: 0.85rem; color: #9ca3af; display: block; margin-top: 5px;">
-                    ${award.file ? 'File currently uploaded' : 'No file selected'}
+                    ${award.file ? 'File: ' + sanitizeHTML(award.fileName || 'uploaded') : 'No file selected'}
                 </span>
             </div>
         </div>
@@ -1401,12 +1522,16 @@ function removeAward(index) {
 
 function collectAwardsData() {
     const items = document.querySelectorAll('#awardsList .dynamic-item');
-    return Array.from(items).map(item => ({
+    return Array.from(items).map(item => {
+        const inp = item.querySelector('input[type="file"]');
+        return {
         name: item.querySelector('.award-name').value,
         organization: item.querySelector('.award-org').value,
         year: item.querySelector('.award-year').value,
-        file: item.querySelector('input[type="file"]').getAttribute('data-file') || null
-    }));
+        file: inp ? inp.getAttribute('data-file') : null,
+        fileName: inp ? inp.getAttribute('data-file-name') : null,
+        fileType: inp ? inp.getAttribute('data-file-type') : null
+    }});
 }
 
 // ===== DATA PERSISTENCE =====

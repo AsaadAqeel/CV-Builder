@@ -16,18 +16,44 @@ function sanitizeHTML(str) {
 
 function sanitizeURL(url) {
     if (typeof url !== 'string') return '';
-    const allowedProtocols = ['http:', 'https:', 'mailto:', 'tel:'];
+    if (url.startsWith('data:image/') || url.startsWith('data:application/pdf')) return url;
+    if (url.startsWith('blob:')) return url;
+    const allowedProtocols = ['http:', 'https:', 'mailto:', 'tel:', 'blob:', 'data:'];
     try {
         const parsed = new URL(url, window.location.origin);
         if (allowedProtocols.includes(parsed.protocol)) {
             return parsed.href;
         }
     } catch (e) {
-        if (url.match(/^(mailto:|tel:)/i)) {
+        if (url.match(/^(mailto:|tel:|blob:|data:)/i)) {
             return url;
         }
     }
     return '';
+}
+function isImageFile(url, fileName) {
+    if (!url) return false;
+    if (url.startsWith('data:image/')) return true;
+    const name = (fileName || url || '').toLowerCase();
+    return /\.(png|jpe?g|gif|webp|svg)$/.test(name);
+}
+function isPdfFile(url, fileName, fileType) {
+    if (fileType === 'application/pdf') return true;
+    if (url && url.startsWith('data:application/pdf')) return true;
+    const name = (fileName || url || '').toLowerCase();
+    return /\.pdf$/.test(name) || name.includes('application/pdf');
+}
+function renderFilePreview(url, fileName, fileType) {
+    if (!url) return '';
+    const safeUrl = sanitizeURL(url);
+    const safeName = sanitizeHTML(fileName || 'document.pdf');
+    if (isImageFile(url, fileName)) {
+        return '<img src="' + safeUrl + '" alt="' + safeName + '" class="file-preview-img" loading="lazy">';
+    }
+    if (isPdfFile(url, fileName, fileType)) {
+        return '<div class="file-preview-card"><i class="fas fa-file-pdf"></i><div class="pdf-meta"><span class="pdf-name">' + safeName + '</span></div><div class="pdf-actions"><a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer"><i class="fas fa-external-link-alt"></i> Open</a><a href="' + safeUrl + '" download="' + safeName + '"><i class="fas fa-download"></i> Download</a></div></div><div class="pdf-viewer-wrap"><iframe src="' + safeUrl + '" title="' + safeName + '" loading="lazy"></iframe></div>';
+    }
+    return '<div class="file-preview-card"><i class="fas fa-file"></i><div class="pdf-meta"><span class="pdf-name">' + safeName + '</span></div><div class="pdf-actions"><a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">Open</a></div></div>';
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -224,12 +250,19 @@ function renderExperience(experiences) {
     const container = document.querySelector('.timeline');
     if (!container) return;
 
-    container.innerHTML = experiences.map(exp => `
+    container.innerHTML = experiences.map(exp => {
+        const logoUrl = exp.logo || exp.companyLogo || exp.file || '';
+        const logoName = exp.logoName || exp.fileName || '';
+        const hasLogo = logoUrl && isImageFile(logoUrl, logoName);
+        return `
         <div class="experience-card">
             <div class="experience-header">
-                <div class="company-info">
-                    <h3>${sanitizeHTML(exp.company)}</h3>
-                    <span class="role">${sanitizeHTML(exp.role)}</span>
+                <div class="company-info" style="display:flex;gap:12px;align-items:center;">
+                    ${hasLogo ? '<img src="' + sanitizeURL(logoUrl) + '" alt="' + sanitizeHTML(exp.company) + ' logo" class="company-logo-preview">' : ''}
+                    <div>
+                        <h3>${sanitizeHTML(exp.company)}</h3>
+                        <span class="role">${sanitizeHTML(exp.role)}</span>
+                    </div>
                 </div>
                 <span class="date">${sanitizeHTML(exp.startDate)} - ${sanitizeHTML(exp.endDate)}</span>
             </div>
@@ -237,14 +270,18 @@ function renderExperience(experiences) {
                 ${(exp.achievements || []).map(ach => '<li>' + sanitizeHTML(ach) + '</li>').join('')}
             </ul>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 function renderEducation(education) {
     const container = document.querySelector('.education-cards');
     if (!container) return;
 
-    container.innerHTML = education.map(edu => `
+    container.innerHTML = education.map(edu => {
+        const fileUrl = edu.file || edu.fileUrl || '';
+        const fileName = edu.fileName || 'degree.pdf';
+        const fileType = edu.fileType || '';
+        return `
         <div class="education-card">
             <div class="edu-icon">
                 <i class="fas fa-graduation-cap"></i>
@@ -254,13 +291,10 @@ function renderEducation(education) {
                 <p class="institution">${sanitizeHTML(edu.institution)}</p>
                 <p class="grad-date">Graduated: ${sanitizeHTML(edu.graduationDate)}</p>
                 ${edu.gpa ? `<p class="gpa">GPA: ${sanitizeHTML(edu.gpa)}/4.0</p>` : ''}
-                ${edu.file ? `
-                <a href="${sanitizeURL(edu.file)}" target="_blank" rel="noopener noreferrer" class="view-file-btn">
-                    <i class="fas fa-eye"></i> View Degree
-                </a>` : ''}
+                ${fileUrl ? renderFilePreview(fileUrl, fileName, fileType) : ''}
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 function renderSkills(technicalSkills, softSkills) {
@@ -310,10 +344,15 @@ function renderProjects(projects) {
     const container = document.querySelector('.projects-grid');
     if (!container) return;
 
-    container.innerHTML = projects.map(proj => `
+    container.innerHTML = projects.map(proj => {
+        const fileUrl = proj.file || proj.image || '';
+        const fileName = proj.fileName || '';
+        const fileType = proj.fileType || '';
+        const hasImage = fileUrl && isImageFile(fileUrl, fileName);
+        return `
         <div class="project-card">
             <div class="project-image">
-                <div class="project-placeholder">${sanitizeHTML(proj.name)}</div>
+                ${hasImage ? '<img src="' + sanitizeURL(fileUrl) + '" alt="' + sanitizeHTML(proj.name) + '" style="width:100%;height:100%;object-fit:cover;">' : '<div class="project-placeholder">' + sanitizeHTML(proj.name) + '</div>'}
             </div>
             <div class="project-content">
                 <h3>${sanitizeHTML(proj.name)}</h3>
@@ -321,38 +360,44 @@ function renderProjects(projects) {
                 <div class="project-tech">
                     ${(proj.technologies || []).map(tech => '<span>' + sanitizeHTML(tech) + '</span>').join('')}
                 </div>
+                ${fileUrl && !hasImage ? renderFilePreview(fileUrl, fileName, fileType) : ''}
                 <div class="project-links">
                     ${proj.demoUrl ? `<a href="${sanitizeURL(proj.demoUrl)}" target="_blank" rel="noopener noreferrer" class="btn-small">View Demo</a>` : ''}
                     ${proj.codeUrl ? `<a href="${sanitizeURL(proj.codeUrl)}" target="_blank" rel="noopener noreferrer" class="btn-small btn-outline">Source Code</a>` : ''}
                 </div>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 function renderCertifications(certifications) {
     const container = document.querySelector('.cert-grid');
     if (!container) return;
 
-    container.innerHTML = certifications.map(cert => `
+    container.innerHTML = certifications.map(cert => {
+        const fileUrl = cert.file || cert.fileUrl || '';
+        const fileName = cert.fileName || (cert.name ? cert.name + '.pdf' : 'certificate.pdf');
+        const fileType = cert.fileType || '';
+        return `
         <div class="cert-card">
             <i class="fas fa-certificate"></i>
             <h3>${sanitizeHTML(cert.name)}</h3>
             <p>${sanitizeHTML(cert.organization)}</p>
             <span class="cert-date">${sanitizeHTML(cert.year)}</span>
-            ${cert.file ? `
-            <a href="${sanitizeURL(cert.file)}" target="_blank" rel="noopener noreferrer" class="view-cert-btn">
-                <i class="fas fa-eye"></i> View Certificate
-            </a>` : ''}
+            ${fileUrl ? renderFilePreview(fileUrl, fileName, fileType) : ''}
         </div>
-    `).join('');
+    `}).join('');
 }
 
 function renderAwards(awards) {
     const container = document.querySelector('.awards-grid');
     if (!container) return;
 
-    container.innerHTML = awards.map(award => `
+    container.innerHTML = awards.map(award => {
+        const fileUrl = award.file || award.fileUrl || '';
+        const fileName = award.fileName || (award.name ? award.name + '.pdf' : 'award.pdf');
+        const fileType = award.fileType || '';
+        return `
         <div class="award-card">
             <div class="award-icon">
                 <i class="fas fa-trophy"></i>
@@ -361,13 +406,10 @@ function renderAwards(awards) {
                 <h3>${sanitizeHTML(award.name)}</h3>
                 <p>${sanitizeHTML(award.organization)}</p>
                 <span class="award-year">${sanitizeHTML(award.year)}</span>
-                ${award.file ? `
-                <a href="${sanitizeURL(award.file)}" target="_blank" rel="noopener noreferrer" class="view-file-btn">
-                    <i class="fas fa-eye"></i> View Award
-                </a>` : ''}
+                ${fileUrl ? renderFilePreview(fileUrl, fileName, fileType) : ''}
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 function dismissWelcome() {
