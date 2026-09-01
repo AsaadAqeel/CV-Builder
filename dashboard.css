@@ -885,6 +885,18 @@
 }
 .dashboard-container.split-view ~ .file-modal { display: none !important; }
 
+body[data-mode="light"] .dashboard-nav { background: rgba(255,255,255,0.96); border-bottom-color: rgba(124,58,237,0.15); }
+body[data-mode="light"] .dashboard-nav .nav-brand { color: #111827; }
+body[data-mode="light"] .dashboard-sidebar { background: #ffffff; border-right-color: rgba(0,0,0,0.08); }
+body[data-mode="light"] .sidebar-menu li { color: #4b5563; }
+body[data-mode="light"] .sidebar-menu li.active, body[data-mode="light"] .sidebar-menu li:hover { background: rgba(124,58,237,0.08); color: var(--violet); }
+body[data-mode="light"] .dashboard-main { background: #f9fafb; }
+body[data-mode="light"] .form-section { background: #ffffff; border-color: rgba(0,0,0,0.06); }
+body[data-mode="light"] .form-group label { color: #111827; }
+body[data-mode="light"] .form-group input, body[data-mode="light"] .form-group textarea, body[data-mode="light"] .form-group select { background: #ffffff; border-color: #d1d5db; color: #111827; }
+body[data-mode="light"] .dynamic-item { background: #f9fafb; border-color: rgba(0,0,0,0.06); }
+body[data-mode="light"] .btn-add { border-color: rgba(124,58,237,0.3); color: var(--violet); }
+
 /* ===== OPTIONAL HINT ===== */
 .optional-hint {
     color: #9ca3af;

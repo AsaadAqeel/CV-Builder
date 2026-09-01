@@ -1597,6 +1597,21 @@ function updatePreview() {
         frame.src = frame.src; // Reloads the iframe
     }
 }
+function applyLightDark(mode) {
+    var m = mode === 'light' ? 'light' : 'dark';
+    document.body.setAttribute('data-mode', m);
+    var icon = document.querySelector('#dashThemeToggle i, #themeToggle i');
+    if (icon) icon.className = m === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+    try { localStorage.setItem('themeMode', m); cvData.design = cvData.design || {}; cvData.design.mode = m; localStorage.setItem('cvData', JSON.stringify(cvData)); var f = document.getElementById('previewFrame'); if (f && f.contentWindow) { try { f.contentWindow.document.body.setAttribute('data-mode', m); } catch(e){} } } catch(e){}
+}
+function toggleLightDark() {
+    var cur = document.body.getAttribute('data-mode') || localStorage.getItem('themeMode') || 'dark';
+    applyLightDark(cur === 'dark' ? 'light' : 'dark');
+}
+(function initDashLightDark(){
+    var saved = (cvData && cvData.design && cvData.design.mode) || localStorage.getItem('themeMode') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    applyLightDark(saved);
+})();
 
 // ===== CV STRENGTH METER =====
 function calculateStrength() {

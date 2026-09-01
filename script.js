@@ -491,6 +491,23 @@ function dismissWelcome() {
     var badge = document.getElementById('sampleBadge');
     if (badge) badge.style.display = 'flex';
 }
+function applyLightDark(mode) {
+    var m = mode === 'light' ? 'light' : 'dark';
+    document.body.setAttribute('data-mode', m);
+    var icon = document.querySelector('#themeToggle i, #dashThemeToggle i');
+    if (icon) icon.className = m === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+    try { localStorage.setItem('themeMode', m); var d = JSON.parse(localStorage.getItem('cvData')||'{}'); d.design=d.design||{}; d.design.mode=m; localStorage.setItem('cvData', JSON.stringify(d)); } catch(e){}
+}
+function toggleLightDark() {
+    var cur = document.body.getAttribute('data-mode') || localStorage.getItem('themeMode') || 'dark';
+    applyLightDark(cur === 'dark' ? 'light' : 'dark');
+}
+(function initLightDark(){
+    var saved = null;
+    try { var d = JSON.parse(localStorage.getItem('cvData')||'{}'); saved = d.design && d.design.mode; } catch(e){}
+    var mode = saved || localStorage.getItem('themeMode') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    applyLightDark(mode);
+})();
 
 // ===== ANIMATED SKILL BARS =====
 document.addEventListener('DOMContentLoaded', function () {
