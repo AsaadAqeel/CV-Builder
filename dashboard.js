@@ -1582,9 +1582,11 @@ function collectAwardsData() {
 function togglePreview() {
     const container = document.querySelector('.dashboard-container');
     container.classList.toggle('split-view');
-
-    // Refresh preview when opening
-    if (container.classList.contains('split-view')) {
+    const isSplit = container.classList.contains('split-view');
+    document.querySelectorAll('.nav-actions a[href="index.html"], .nav-actions button[onclick="exportStaticWebsite()"], .dashboard-footer a[href="index.html"]').forEach(function(el){
+        el.style.display = isSplit ? 'none' : '';
+    });
+    if (isSplit) {
         updatePreview();
     }
 }

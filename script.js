@@ -91,6 +91,9 @@ function closeFilePreview() {
 
 document.addEventListener('DOMContentLoaded', function () {
     loadCVData();
+    if (window.self !== window.top) {
+        document.querySelectorAll('a[href="dashboard.html"], button[onclick="exportStaticWebsite()"]').forEach(function(el){ el.style.display='none'; });
+    }
 
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
