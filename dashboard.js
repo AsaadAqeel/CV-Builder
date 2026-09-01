@@ -529,12 +529,24 @@ function setupImageUpload() {
         const objectUrl = createObjectURL(file);
         currentProfileImageObjectUrl = objectUrl;
         currentProfileImage = objectUrl;
-        cvData.personal.profileImage = objectUrl;
-        cvData.personal.profileImageName = file.name;
-        cvData.personal.profileImageType = file.type;
         updateImagePreview(objectUrl);
-        localStorage.setItem('cvData', JSON.stringify(cvData));
-        updatePreview();
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            cvData.personal.profileImage = e.target.result;
+            cvData.personal.profileImageName = file.name;
+            cvData.personal.profileImageType = file.type;
+            currentProfileImage = e.target.result;
+            localStorage.setItem('cvData', JSON.stringify(cvData));
+            updatePreview();
+        };
+        reader.onerror = function() {
+            cvData.personal.profileImage = objectUrl;
+            cvData.personal.profileImageName = file.name;
+            cvData.personal.profileImageType = file.type;
+            localStorage.setItem('cvData', JSON.stringify(cvData));
+            updatePreview();
+        };
+        reader.readAsDataURL(file);
     });
 }
 
@@ -542,6 +554,13 @@ function updateImagePreview(imageSrc) {
     const previewImg = document.getElementById('previewImg');
     if (previewImg && imageSrc) {
         previewImg.src = imageSrc;
+        previewImg.style.display = 'block';
+        previewImg.style.cursor = 'zoom-in';
+        previewImg.title = 'Click to preview';
+        previewImg.onclick = function() { openDashPreview(imageSrc, 'Profile photo', 'image'); };
+        previewImg.onerror = function() {
+            this.src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop';
+        };
     }
 }
 

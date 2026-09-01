@@ -167,23 +167,31 @@ function loadCVData() {
             const nameEl = document.querySelector('.hero-text h1');
             const titleEl = document.querySelector('.tagline');
             const locationEl = document.querySelector('.location');
-            const profileImg = document.querySelector('.profile-image img');
+            const profileImg = document.getElementById('profilePreviewImg') || document.querySelector('.profile-image img');
+            const profileContainer = document.getElementById('profileImageContainer') || document.querySelector('.profile-image');
+            const heroImage = document.querySelector('.hero-image');
 
             if (nameEl) nameEl.textContent = cvData.personal.fullName || 'Your Name';
             if (titleEl) titleEl.textContent = cvData.personal.jobTitle || 'Job Title';
             if (locationEl) {
                 locationEl.innerHTML = '<i class="fas fa-map-marker-alt"></i> ' + sanitizeHTML(cvData.personal.location || 'Location');
             }
-            if (profileImg && cvData.personal.profileImage) {
-                profileImg.src = cvData.personal.profileImage;
-                profileImg.closest('.profile-image').style.display = 'block';
-            } else if (profileImg) {
-                profileImg.closest('.profile-image').style.display = 'none';
-                // Show initials avatar
-                const heroImage = document.querySelector('.hero-image');
-                if (heroImage && cvData.personal.fullName) {
-                    const existingAvatar = heroImage.querySelector('.initials-avatar');
-                    if (!existingAvatar) {
+            if (heroImage) {
+                heroImage.querySelectorAll('.initials-avatar').forEach(el => el.remove());
+            }
+            if (profileImg && profileContainer && cvData.personal.profileImage && cvData.personal.profileImage.trim() !== '') {
+                const src = sanitizeURL(cvData.personal.profileImage) || cvData.personal.profileImage;
+                profileImg.src = src;
+                profileImg.alt = (cvData.personal.fullName || 'Profile') + ' photo';
+                profileImg.style.display = 'block';
+                profileContainer.style.display = 'block';
+                if (heroImage) heroImage.style.display = 'flex';
+                profileImg.style.cursor = 'zoom-in';
+                profileImg.title = 'Click to preview';
+                profileImg.onclick = function() { openFilePreview(src, cvData.personal.fullName + ' photo', 'image'); };
+                profileImg.onerror = function() {
+                    this.style.display = 'none';
+                    if (heroImage && cvData.personal.fullName) {
                         const initials = cvData.personal.fullName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
                         const avatar = document.createElement('div');
                         avatar.className = 'initials-avatar';
@@ -191,6 +199,20 @@ function loadCVData() {
                         avatar.setAttribute('aria-label', cvData.personal.fullName + ' initials');
                         heroImage.appendChild(avatar);
                     }
+                };
+            } else if (profileContainer) {
+                if (profileImg && !cvData.personal.profileImage) {
+                    profileImg.style.display = 'none';
+                    profileContainer.style.display = 'none';
+                }
+                if (heroImage && cvData.personal.fullName) {
+                    const initials = cvData.personal.fullName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+                    const avatar = document.createElement('div');
+                    avatar.className = 'initials-avatar';
+                    avatar.textContent = initials;
+                    avatar.setAttribute('aria-label', cvData.personal.fullName + ' initials');
+                    heroImage.appendChild(avatar);
+                    heroImage.style.display = 'flex';
                 }
             }
         }

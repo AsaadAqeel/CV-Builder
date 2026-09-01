@@ -286,6 +286,22 @@ body {
     background: var(--gradient-primary);
     padding: 4px;
     animation: morphing 8s ease-in-out infinite;
+    cursor: zoom-in;
+}
+.initials-avatar {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    border: 4px solid rgba(255,255,255,0.15);
+    box-shadow: 0 8px 30px rgba(124,58,237,0.4);
 }
 
 @keyframes morphing {
