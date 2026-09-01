@@ -382,6 +382,7 @@ const defaultData = {
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function () {
     loadData();
+    initDashLightDark();
     setupNavigation();
     setupTabs();
     setupDesign();
@@ -391,6 +392,8 @@ document.addEventListener('DOMContentLoaded', function () {
     setupAutoSave();
     setupStrengthTips();
     setupDragReorder();
+    var pf = document.getElementById('previewFrame');
+    if (pf) pf.addEventListener('load', function(){ var m = document.body.getAttribute('data-mode')||localStorage.getItem('themeMode')||'dark'; try{ pf.contentWindow.document.body.setAttribute('data-mode', m);}catch(e){} });
 });
 
 // ===== REAL-TIME VALIDATION =====
@@ -1600,18 +1603,31 @@ function updatePreview() {
 function applyLightDark(mode) {
     var m = mode === 'light' ? 'light' : 'dark';
     document.body.setAttribute('data-mode', m);
-    var icon = document.querySelector('#dashThemeToggle i, #themeToggle i');
-    if (icon) icon.className = m === 'light' ? 'fas fa-moon' : 'fas fa-sun';
-    try { localStorage.setItem('themeMode', m); cvData.design = cvData.design || {}; cvData.design.mode = m; localStorage.setItem('cvData', JSON.stringify(cvData)); var f = document.getElementById('previewFrame'); if (f && f.contentWindow) { try { f.contentWindow.document.body.setAttribute('data-mode', m); } catch(e){} } } catch(e){}
+    var icon = document.querySelector('#dashThemeToggle i');
+    if (icon) icon.className = m === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+    var designIcon = document.querySelector('#designModeToggle i');
+    var designLabel = document.getElementById('designModeLabel');
+    if (designIcon) designIcon.className = m === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+    if (designLabel) designLabel.textContent = m === 'light' ? 'Light Mode' : 'Dark Mode';
+    try {
+        localStorage.setItem('themeMode', m);
+        if (typeof cvData !== 'undefined' && cvData) { cvData.design = cvData.design || {}; cvData.design.mode = m; localStorage.setItem('cvData', JSON.stringify(cvData)); }
+        var f = document.getElementById('previewFrame');
+        if (f && f.contentWindow && f.contentWindow.document && f.contentWindow.document.body) { try { f.contentWindow.document.body.setAttribute('data-mode', m); } catch(e){} }
+        var t2 = document.querySelector('#themeToggle i');
+        if (t2) t2.className = m === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+    } catch(e){}
 }
 function toggleLightDark() {
     var cur = document.body.getAttribute('data-mode') || localStorage.getItem('themeMode') || 'dark';
     applyLightDark(cur === 'dark' ? 'light' : 'dark');
 }
-(function initDashLightDark(){
-    var saved = (cvData && cvData.design && cvData.design.mode) || localStorage.getItem('themeMode') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-    applyLightDark(saved);
-})();
+function initDashLightDark(){
+    var saved = null;
+    try { var raw = localStorage.getItem('cvData'); if (raw) { var d = JSON.parse(raw); if (d.design && d.design.mode) saved = d.design.mode; } } catch(e){}
+    var mode = saved || localStorage.getItem('themeMode') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    applyLightDark(mode);
+}
 
 // ===== CV STRENGTH METER =====
 function calculateStrength() {
