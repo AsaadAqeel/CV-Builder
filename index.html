@@ -535,6 +535,22 @@
         </div>
     </div>
 
+    <!-- File Preview Modal (opens when user clicks an image/PDF) -->
+    <div id="file-preview-modal" class="file-modal" style="display:none;" role="dialog" aria-modal="true" aria-label="File preview">
+        <div class="file-modal-backdrop" onclick="closeFilePreview()"></div>
+        <div class="file-modal-content">
+            <button type="button" class="file-modal-close" onclick="closeFilePreview()" aria-label="Close preview">&times;</button>
+            <div class="file-modal-header">
+                <h3 id="file-modal-title"></h3>
+                <div class="file-modal-actions">
+                    <a id="file-modal-open" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary"><i class="fas fa-external-link-alt"></i> Open</a>
+                    <a id="file-modal-download" href="#" download class="btn btn-primary"><i class="fas fa-download"></i> Download</a>
+                </div>
+            </div>
+            <div id="file-modal-body" class="file-modal-body"></div>
+        </div>
+    </div>
+
     <!-- 
         PERFORMANCE NOTE: Consider bundling and minifying JS files for production.
         Use tools like Webpack, Rollup, or esbuild to create optimized bundles.

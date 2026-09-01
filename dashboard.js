@@ -59,6 +59,26 @@ function isPdfFile(fileOrName) {
     const name = (typeof fileOrName === 'string' ? fileOrName : fileOrName.name || '').toLowerCase();
     return /\.pdf$/.test(name);
 }
+function openDashPreview(url, fileName, type) {
+    const modal = document.getElementById('dash-file-preview-modal');
+    const body = document.getElementById('dash-file-modal-body');
+    const title = document.getElementById('dash-file-modal-title');
+    const openBtn = document.getElementById('dash-file-modal-open');
+    const dlBtn = document.getElementById('dash-file-modal-download');
+    if (!modal || !body) { if (url) window.open(url, '_blank'); return; }
+    const safeUrl = sanitizeURL(url);
+    const safeName = fileName || 'preview';
+    title.textContent = safeName; openBtn.href = safeUrl; dlBtn.href = safeUrl; dlBtn.download = safeName;
+    if (type === 'image' || isImageFile(safeName) || isImageFile({name:safeName,type:type})) body.innerHTML = '<img src="' + safeUrl + '" alt="' + sanitizeHTML(safeName) + '" style="max-width:100%;max-height:80vh;object-fit:contain;display:block;margin:0 auto;border-radius:8px;">';
+    else if (type === 'pdf' || isPdfFile(safeName)) body.innerHTML = '<iframe src="' + safeUrl + '" title="' + sanitizeHTML(safeName) + '" style="width:100%;height:80vh;border:none;border-radius:8px;background:#fff;"></iframe>';
+    else body.innerHTML = '<div style="padding:40px;text-align:center;color:#d1d5db;"><p>' + sanitizeHTML(safeName) + '</p><a href="' + safeUrl + '" target="_blank" class="btn btn-primary" style="margin-top:16px;display:inline-block;">Open File</a></div>';
+    modal.style.display = 'flex'; document.body.style.overflow = 'hidden';
+}
+function closeDashPreview() {
+    const modal = document.getElementById('dash-file-preview-modal');
+    const body = document.getElementById('dash-file-modal-body');
+    if (!modal) return; modal.style.display = 'none'; if (body) body.innerHTML = ''; document.body.style.overflow = '';
+}
 function renderDashboardFilePreview(input, url, file) {
     let preview = input.parentElement.querySelector('.file-inline-preview');
     if (!preview) {
@@ -70,12 +90,15 @@ function renderDashboardFilePreview(input, url, file) {
     }
     const safeUrl = sanitizeURL(url);
     const safeName = sanitizeHTML(file.name);
+    const escUrl = safeUrl.replace(/'/g, '%27');
+    const escName = file.name.replace(/'/g, "\\'");
     if (isImageFile(file)) {
-        preview.innerHTML = '<img src="' + safeUrl + '" alt="' + safeName + '"> <div class="pdf-mini-card"><i class="fas fa-image"></i><span>' + safeName + '</span> <a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">Open</a></div>';
+        preview.innerHTML = '<img src="' + safeUrl + '" alt="' + safeName + '" style="cursor:zoom-in" onclick="openDashPreview(\'' + escUrl + '\',\'' + escName + '\',\'image\')" title="Click to preview"> <div class="pdf-mini-card"><i class="fas fa-image"></i><span>' + safeName + '</span> <a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Open</a></div>';
     } else if (isPdfFile(file)) {
-        preview.innerHTML = '<div class="pdf-mini-card"><i class="fas fa-file-pdf"></i><span>' + safeName + '</span> <a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">Open</a> <a href="' + safeUrl + '" download="' + safeName + '">Download</a></div><iframe src="' + safeUrl + '" title="' + safeName + '"></iframe>';
+        preview.innerHTML = '<div class="pdf-mini-card" style="cursor:pointer" onclick="openDashPreview(\'' + escUrl + '\',\'' + escName + '\',\'pdf\')"><i class="fas fa-file-pdf"></i><span>' + safeName + '</span> <a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Open</a> <a href="' + safeUrl + '" download="' + safeName + '" onclick="event.stopPropagation()">Download</a></div><iframe src="' + safeUrl + '" title="' + safeName + '" style="pointer-events:none;cursor:pointer" onclick="openDashPreview(\'' + escUrl + '\',\'' + escName + '\',\'pdf\')"></iframe>';
+        preview.style.cursor = 'pointer'; preview.onclick = function(){ openDashPreview(safeUrl, file.name, 'pdf'); };
     } else {
-        preview.innerHTML = '<div class="pdf-mini-card"><i class="fas fa-file"></i><span>' + safeName + '</span> <a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">Open</a></div>';
+        preview.innerHTML = '<div class="pdf-mini-card" style="cursor:pointer" onclick="openDashPreview(\'' + escUrl + '\',\'' + escName + '\',\'file\')"><i class="fas fa-file"></i><span>' + safeName + '</span> <a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Open</a></div>';
     }
     const status = input.nextElementSibling;
     if (status && status.classList.contains('file-status')) {

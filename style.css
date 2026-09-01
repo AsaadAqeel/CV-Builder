@@ -1767,6 +1767,81 @@ section {
     background: #fff;
     padding: 4px;
 }
+.file-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+.file-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(4px);
+}
+.file-modal-content {
+    position: relative;
+    background: #0f0f0f;
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 16px;
+    width: min(1000px, 96vw);
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.file-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(124,58,237,0.2);
+    background: #141414;
+}
+.file-modal-header h3 {
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+}
+.file-modal-actions {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+}
+.file-modal-actions .btn { padding: 8px 16px; font-size: 13px; }
+.file-modal-close {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    z-index: 2;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+.file-modal-close:hover { background: rgba(239,68,68,0.9); }
+.file-modal-body {
+    overflow: auto;
+    padding: 16px;
+    background: #0a0a0a;
+    min-height: 200px;
+}
+.file-modal-body img { max-width: 100%; border-radius: 8px; }
+.file-modal-body iframe { width: 100%; height: 78vh; border: none; border-radius: 8px; background:#fff; }
 
 /* ===== THEMES ===== */
 /* ===== THEMES ===== */

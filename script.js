@@ -47,13 +47,46 @@ function renderFilePreview(url, fileName, fileType) {
     if (!url) return '';
     const safeUrl = sanitizeURL(url);
     const safeName = sanitizeHTML(fileName || 'document.pdf');
+    const escUrl = safeUrl.replace(/'/g, '%27').replace(/"/g, '&quot;');
+    const escName = (fileName || 'document.pdf').replace(/'/g, "\\'").replace(/"/g, '&quot;');
     if (isImageFile(url, fileName)) {
-        return '<img src="' + safeUrl + '" alt="' + safeName + '" class="file-preview-img" loading="lazy">';
+        return '<img src="' + safeUrl + '" alt="' + safeName + '" class="file-preview-img" loading="lazy" style="cursor:zoom-in" onclick="openFilePreview(\'' + escUrl + '\',\'' + escName + '\',\'image\')" title="Click to preview">';
     }
     if (isPdfFile(url, fileName, fileType)) {
-        return '<div class="file-preview-card"><i class="fas fa-file-pdf"></i><div class="pdf-meta"><span class="pdf-name">' + safeName + '</span></div><div class="pdf-actions"><a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer"><i class="fas fa-external-link-alt"></i> Open</a><a href="' + safeUrl + '" download="' + safeName + '"><i class="fas fa-download"></i> Download</a></div></div><div class="pdf-viewer-wrap"><iframe src="' + safeUrl + '" title="' + safeName + '" loading="lazy"></iframe></div>';
+        return '<div class="file-preview-card" style="cursor:pointer" onclick="openFilePreview(\'' + escUrl + '\',\'' + escName + '\',\'pdf\')" title="Click to preview"><i class="fas fa-file-pdf"></i><div class="pdf-meta"><span class="pdf-name">' + safeName + '</span></div><div class="pdf-actions" onclick="event.stopPropagation()"><a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer"><i class="fas fa-external-link-alt"></i> Open</a><a href="' + safeUrl + '" download="' + safeName + '"><i class="fas fa-download"></i> Download</a></div></div><div class="pdf-viewer-wrap" style="cursor:pointer" onclick="openFilePreview(\'' + escUrl + '\',\'' + escName + '\',\'pdf\')"><iframe src="' + safeUrl + '" title="' + safeName + '" loading="lazy" style="pointer-events:none"></iframe></div>';
     }
-    return '<div class="file-preview-card"><i class="fas fa-file"></i><div class="pdf-meta"><span class="pdf-name">' + safeName + '</span></div><div class="pdf-actions"><a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">Open</a></div></div>';
+    return '<div class="file-preview-card" style="cursor:pointer" onclick="openFilePreview(\'' + escUrl + '\',\'' + escName + '\',\'file\')"><i class="fas fa-file"></i><div class="pdf-meta"><span class="pdf-name">' + safeName + '</span></div><div class="pdf-actions" onclick="event.stopPropagation()"><a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">Open</a></div></div>';
+}
+function openFilePreview(url, fileName, type) {
+    const modal = document.getElementById('file-preview-modal');
+    const body = document.getElementById('file-modal-body');
+    const title = document.getElementById('file-modal-title');
+    const openBtn = document.getElementById('file-modal-open');
+    const dlBtn = document.getElementById('file-modal-download');
+    if (!modal || !body) { if (url) window.open(url, '_blank'); return; }
+    const safeUrl = sanitizeURL(url);
+    const safeName = fileName || 'preview';
+    title.textContent = safeName;
+    openBtn.href = safeUrl;
+    dlBtn.href = safeUrl;
+    dlBtn.download = safeName;
+    if (type === 'image' || isImageFile(safeUrl, safeName)) {
+        body.innerHTML = '<img src="' + safeUrl + '" alt="' + sanitizeHTML(safeName) + '" style="max-width:100%;max-height:80vh;object-fit:contain;display:block;margin:0 auto;border-radius:8px;">';
+    } else if (type === 'pdf' || isPdfFile(safeUrl, safeName)) {
+        body.innerHTML = '<iframe src="' + safeUrl + '" title="' + sanitizeHTML(safeName) + '" style="width:100%;height:80vh;border:none;border-radius:8px;background:#fff;"></iframe><object data="' + safeUrl + '" type="application/pdf" style="display:none"></object>';
+    } else {
+        body.innerHTML = '<div style="padding:40px;text-align:center;color:#d1d5db;"><i class="fas fa-file" style="font-size:48px;margin-bottom:16px;display:block;"></i><p>' + sanitizeHTML(safeName) + '</p><a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="margin-top:16px;display:inline-block;">Open File</a></div>';
+    }
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+function closeFilePreview() {
+    const modal = document.getElementById('file-preview-modal');
+    const body = document.getElementById('file-modal-body');
+    if (!modal) return;
+    modal.style.display = 'none';
+    if (body) body.innerHTML = '';
+    document.body.style.overflow = '';
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -61,6 +94,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
+            var fileModal = document.getElementById('file-preview-modal');
+            if (fileModal && fileModal.style.display !== 'none' && fileModal.style.display !== '') { closeFilePreview(); return; }
             var overlay = document.getElementById('welcomeOverlay');
             if (overlay && !overlay.classList.contains('hidden')) {
                 dismissWelcome();
@@ -254,11 +289,13 @@ function renderExperience(experiences) {
         const logoUrl = exp.logo || exp.companyLogo || exp.file || '';
         const logoName = exp.logoName || exp.fileName || '';
         const hasLogo = logoUrl && isImageFile(logoUrl, logoName);
+        const escLogoUrl = logoUrl ? sanitizeURL(logoUrl).replace(/'/g, '%27') : '';
+        const escLogoName = (logoName || exp.company || 'logo').replace(/'/g, "\\'");
         return `
         <div class="experience-card">
             <div class="experience-header">
                 <div class="company-info" style="display:flex;gap:12px;align-items:center;">
-                    ${hasLogo ? '<img src="' + sanitizeURL(logoUrl) + '" alt="' + sanitizeHTML(exp.company) + ' logo" class="company-logo-preview">' : ''}
+                    ${hasLogo ? '<img src="' + sanitizeURL(logoUrl) + '" alt="' + sanitizeHTML(exp.company) + ' logo" class="company-logo-preview" style="cursor:zoom-in" onclick="openFilePreview(\'' + escLogoUrl + '\',\'' + escLogoName + '\',\'image\')" title="Click to preview">' : ''}
                     <div>
                         <h3>${sanitizeHTML(exp.company)}</h3>
                         <span class="role">${sanitizeHTML(exp.role)}</span>
@@ -349,9 +386,11 @@ function renderProjects(projects) {
         const fileName = proj.fileName || '';
         const fileType = proj.fileType || '';
         const hasImage = fileUrl && isImageFile(fileUrl, fileName);
+        const escUrl = fileUrl ? sanitizeURL(fileUrl).replace(/'/g, '%27') : '';
+        const escName = (fileName || proj.name || 'image').replace(/'/g, "\\'");
         return `
         <div class="project-card">
-            <div class="project-image">
+            <div class="project-image" ${hasImage ? 'onclick="openFilePreview(\'' + escUrl + '\',\'' + escName + '\',\'image\')" style="cursor:zoom-in"' : ''} title="${hasImage ? 'Click to preview' : ''}">
                 ${hasImage ? '<img src="' + sanitizeURL(fileUrl) + '" alt="' + sanitizeHTML(proj.name) + '" style="width:100%;height:100%;object-fit:cover;">' : '<div class="project-placeholder">' + sanitizeHTML(proj.name) + '</div>'}
             </div>
             <div class="project-content">
